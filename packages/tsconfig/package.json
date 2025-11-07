@@ -1,0 +1,10 @@
+{
+  "name": "@jungle/tsconfig",
+  "version": "1.0.0",
+  "description": "Shared TypeScript configurations",
+  "main": "index.js",
+  "files": [
+    "base.json",
+    "nestjs.json"
+  ]
+}

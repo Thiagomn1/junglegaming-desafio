@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   api-gateway:
     container_name: api-gateway
     build:
-      context: ./apps/api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
     ports:
       - '3001:3001'
     environment:
@@ -23,7 +21,9 @@ services:
         condition: service_started
 
   auth-service:
-    build: ./apps/auth-service
+    build:
+      context: .
+      dockerfile: ./apps/auth-service/Dockerfile
     ports:
       - "4000:4000"
     environment:

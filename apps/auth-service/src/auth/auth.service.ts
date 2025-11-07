@@ -5,14 +5,7 @@ import { User } from './user.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponseDto, RegisterDto, LoginDto, UserResponseDto } from './dto';
-
-interface JwtPayload {
-  sub: number;
-  id: number;
-  email: string;
-  username: string;
-  roles: string[];
-}
+import { JwtPayload } from '@jungle/types';
 
 @Injectable()
 export class AuthService {
