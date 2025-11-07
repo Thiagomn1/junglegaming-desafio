@@ -1,1 +1,0 @@
-# Jungle Gaming — Desafio Fullstack
