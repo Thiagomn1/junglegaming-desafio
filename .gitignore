@@ -1,0 +1,198 @@
+# ========================
+# Node & Dependencies
+# ========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ========================
+# Build & Dist
+# ========================
+dist/
+build/
+*.js.map
+*.d.ts.map
+.turbo/
+.next/
+out/
+
+# ========================
+# TypeScript
+# ========================
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+*.env
+
+# ========================
+# IDE & Editors
+# ========================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-workspace
+*.sublime-project
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# ========================
+# Operating System
+# ========================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ========================
+# Testing & Coverage
+# ========================
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+junit.xml
+.jest/
+
+# ========================
+# Logs
+# ========================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ========================
+# Docker
+# ========================
+docker-compose.override.yml
+.dockerignore
+
+# ========================
+# Database
+# ========================
+*.sqlite
+*.sqlite3
+*.db
+data/
+postgres_data/
+rabbitmq_data/
+
+# ========================
+# Temporary Files
+# ========================
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*.cache
+
+# ========================
+# NestJS Specific
+# ========================
+/dist
+/node_modules
+/.cache
+
+# ========================
+# Turborepo
+# ========================
+.turbo
+
+# ========================
+# Package Manager Locks (opcional - descomente se quiser ignorar)
+# ========================
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# ========================
+# Debug & Profiling
+# ========================
+chrome-profiler-events*.json
+*.cpuprofile
+*.heapsnapshot
+
+# ========================
+# Certificates & Keys
+# ========================
+*.pem
+*.key
+*.cert
+*.crt
+secrets/
+.secrets/
+
+# ========================
+# Backup Files
+# ========================
+*.orig
+*.rej
+
+# ========================
+# API Documentation (se gerado)
+# ========================
+# docs/
+# documentation/
+
+# ========================
+# Custom - Arquivos do Projeto
+# ========================
+# Adicione arquivos específicos do seu projeto aqui
+IMPLEMENTATION_SUMMARY.md
+TEST_ENDPOINTS.md
+README.MD
+test-api.sh

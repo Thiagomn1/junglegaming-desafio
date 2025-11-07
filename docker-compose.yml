@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: ./apps/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=secret
+      - AUTH_SERVICE_URL=http://auth-service:4000
+    networks:
+      - challenge-network
+    depends_on:
+      auth-service:
+        condition: service_started
+      db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+
+  auth-service:
+    build: ./apps/auth-service
+    ports:
+      - "4000:4000"
+    environment:
+      - DB_HOST=db
+      - DB_USER=postgres
+      - DB_PASS=password
+      - DB_NAME=challenge_db
+      - JWT_SECRET=secret
+    networks:
+      - challenge-network
+    depends_on:
+      - db
+
+  db:
+    image: postgres:17.5-alpine3.21
+    container_name: db
+    restart: always
+    ports:
+      - '5432:5432'
+    networks:
+      - challenge-network
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: challenge_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - challenge-network
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  challenge-network:
+    driver: bridge
