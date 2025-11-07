@@ -37,38 +37,6 @@ tsconfig.tsbuildinfo
 *.env
 
 # ========================
-# IDE & Editors
-# ========================
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-
-# JetBrains IDEs (WebStorm, IntelliJ)
-.idea/
-*.iml
-*.iws
-*.ipr
-out/
-
-# Sublime Text
-*.sublime-workspace
-*.sublime-project
-
-# Vim
-*.swp
-*.swo
-*~
-
-# Emacs
-*~
-\#*\#
-.\#*
-
-# ========================
 # Operating System
 # ========================
 # macOS
@@ -152,19 +120,6 @@ temp/
 # ========================
 .turbo
 
-# ========================
-# Package Manager Locks (opcional - descomente se quiser ignorar)
-# ========================
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
-
-# ========================
-# Debug & Profiling
-# ========================
-chrome-profiler-events*.json
-*.cpuprofile
-*.heapsnapshot
 
 # ========================
 # Certificates & Keys
@@ -181,18 +136,3 @@ secrets/
 # ========================
 *.orig
 *.rej
-
-# ========================
-# API Documentation (se gerado)
-# ========================
-# docs/
-# documentation/
-
-# ========================
-# Custom - Arquivos do Projeto
-# ========================
-# Adicione arquivos específicos do seu projeto aqui
-IMPLEMENTATION_SUMMARY.md
-TEST_ENDPOINTS.md
-README.MD
-test-api.sh
