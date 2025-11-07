@@ -22,4 +22,7 @@ async function bootstrap() {
   console.log(`🚀 auth-service rodando na porta 4000`);
   console.log(`📚 Swagger docs: http://localhost:4000/api/docs`);
 }
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('❌ Erro ao inicializar a aplicação:', err);
+  process.exit(1);
+});

@@ -1,26 +1,47 @@
-FROM node:20-alpine
+# Dockerfile otimizado para monorepo Turbo
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+RUN apk update
+WORKDIR /app
+RUN npm install -g turbo
+
+# Prune stage - usa turbo prune para gerar apenas os arquivos necessários
+FROM base AS pruner
+COPY . .
+RUN turbo prune auth-service --docker
+
+# Build stage - instala dependências e faz build
+FROM base AS builder
+COPY .gitignore .gitignore
+COPY --from=pruner /app/out/json/ .
+COPY --from=pruner /app/out/package-lock.json ./package-lock.json
+RUN npm ci
+
+COPY --from=pruner /app/out/full/ .
+COPY turbo.json turbo.json
+
+# Build usando turbo (automaticamente builda as dependências primeiro)
+RUN turbo run build --filter=auth-service...
+
+# Production stage - imagem final enxuta
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-# Copiar package.json raiz e dos workspaces
-COPY package*.json ./
-COPY apps/auth-service/package*.json ./apps/auth-service/
-COPY packages/types/package*.json ./packages/types/
-COPY packages/utils/package*.json ./packages/utils/
-COPY packages/tsconfig/package*.json ./packages/tsconfig/
-COPY packages/eslint-config/package*.json ./packages/eslint-config/
+# Criar usuário não-root para segurança
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nestjs
 
-# Instalar dependências
-RUN npm install
+# Copiar apenas os arquivos de produção necessários
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/dist ./apps/auth-service/dist
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/package*.json ./apps/auth-service/
+COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
+COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
 
-# Copiar código dos packages
-COPY packages/ ./packages/
+# Instalar apenas dependências de produção
+RUN npm ci --omit=dev
 
-# Buildar os packages compartilhados
-RUN npm run build --workspace=@jungle/types
-RUN npm run build --workspace=@jungle/utils
-
-# Copiar código do serviço
-COPY apps/auth-service/ ./apps/auth-service/
-
+USER nestjs
 WORKDIR /app/apps/auth-service
-CMD ["npm", "run", "start:dev"]
+EXPOSE 3000
+
+CMD ["node", "dist/main.js"]
