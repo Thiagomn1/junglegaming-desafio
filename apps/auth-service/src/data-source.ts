@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { User } from './auth/user.entity';
+import path from 'path';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -9,6 +10,13 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS || 'password',
   database: process.env.DB_NAME || 'challenge_db',
   entities: [User],
-  migrations: ['src/migrations/*.ts'],
-  synchronize: false, // NUNCA use true em produção!
+  migrations: [
+    path.resolve(
+      __dirname,
+      process.env.NODE_ENV === 'production'
+        ? 'migrations/*.js'
+        : 'migrations/*.ts',
+    ),
+  ],
+  synchronize: false,
 });
