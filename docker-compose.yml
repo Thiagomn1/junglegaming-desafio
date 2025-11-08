@@ -10,10 +10,13 @@ services:
       - NODE_ENV=${NODE_ENV:-development}
       - JWT_SECRET=${JWT_SECRET:-secret}
       - AUTH_SERVICE_URL=http://auth-service:4000
+      - TASKS_SERVICE_URL=http://tasks-service:5000
     networks:
       - challenge-network
     depends_on:
       auth-service:
+        condition: service_started
+      tasks-service:
         condition: service_started
       db:
         condition: service_started
@@ -37,6 +40,26 @@ services:
       - challenge-network
     depends_on:
       - db
+
+  tasks-service:
+    build:
+      context: .
+      dockerfile: ./apps/tasks-service/Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_HOST=db
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASS=${POSTGRES_PASSWORD:-password}
+      - DB_NAME=${POSTGRES_DB:-challenge_db}
+      - JWT_SECRET=${JWT_SECRET:-secret}
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-admin}@rabbitmq:5672
+    networks:
+      - challenge-network
+    depends_on:
+      - db
+      - rabbitmq
 
   db:
     image: postgres:17.5-alpine3.21

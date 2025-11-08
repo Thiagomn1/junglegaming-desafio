@@ -1,6 +1,6 @@
 # Jungle Challenge - Microservices Architecture
 
-Projeto de microserviços com API Gateway, serviço de autenticação, PostgreSQL e RabbitMQ.
+Projeto de microserviços para um Sistema de Gestão de Tarefas Colaborativo com autenticação simples, CRUD de tarefas, comentários, atribuição e notificações
 
 ## Estrutura do Projeto
 
@@ -8,7 +8,8 @@ Projeto de microserviços com API Gateway, serviço de autenticação, PostgreSQ
 jungle-challenge/
 ├── apps/
 │   ├── api-gateway/          # Gateway principal (porta 3001)
-│   └── auth-service/         # Serviço de autenticação (porta 4000)
+│   ├── auth-service/         # Serviço de autenticação (porta 4000)
+│   └── tasks-service/        # Serviço de gerenciamento de tarefas (porta 5000)
 ├── packages/
 │   ├── types/                # Tipos TypeScript compartilhados
 │   ├── utils/                # Funções utilitárias compartilhadas
@@ -55,6 +56,9 @@ cp apps/api-gateway/.env.example apps/api-gateway/.env
 
 # Auth Service
 cp apps/auth-service/.env.example apps/auth-service/.env
+
+# Tasks Service
+cp apps/tasks-service/.env.example apps/tasks-service/.env
 ```
 
 ### 3. Inicie os containers com Docker Compose
@@ -68,6 +72,7 @@ Isso irá iniciar:
 - ✅ PostgreSQL (porta 5432)
 - ✅ RabbitMQ (portas 5672 e 15672)
 - ✅ Auth Service (porta 4000)
+- ✅ Tasks Service (porta 5000)
 - ✅ API Gateway (porta 3001)
 
 ### 4. Verifique se os serviços estão rodando
@@ -82,35 +87,71 @@ Você deve ver todos os containers com status "Up".
 
 - **API Gateway Swagger**: http://localhost:3001/api/docs
 - **Auth Service Swagger**: http://localhost:4000/api/docs
+- **Tasks Service Swagger**: http://localhost:5000/api/docs
 - **RabbitMQ Management**: http://localhost:15672 (user: admin, password: admin)
 
 ## Desenvolvimento Local (sem Docker)
 
-### 1. Instale as dependências
+### 🚀 Fluxo Rápido (TL;DR)
 
 ```bash
-npm install
+npm run setup   # Apenas na primeira vez
+npm run dev     # Inicia tudo em um único comando
 ```
 
-### 2. Build dos packages compartilhados
+Pronto! Todos os serviços e packages em watch mode rodando em paralelo.
+
+### Setup Inicial (primeira vez)
 
 ```bash
-npm run build --workspace=@jungle/types
-npm run build --workspace=@jungle/utils
+# 1. Instale todas as dependências e build os packages
+npm run setup
 ```
 
-### 3. Configure PostgreSQL e RabbitMQ localmente
+Este comando faz:
 
-Certifique-se de ter PostgreSQL e RabbitMQ rodando localmente ou ajuste os arquivos `.env` para apontar para instâncias remotas.
+- ✅ `npm install` - Instala dependências de todos os workspaces
+- ✅ Build automático dos packages compartilhados (@jungle/types e @jungle/utils)
 
-### 4. Execute os serviços em modo desenvolvimento
+### Executar o Projeto
+
+**Opção 1: Rodar tudo em um único comando (RECOMENDADO)** 🚀
 
 ```bash
-# Terminal 1 - Auth Service
-npm run dev --workspace=auth-service
+npm run dev
+```
 
-# Terminal 2 - API Gateway
-npm run dev --workspace=api-gateway
+Este comando:
+
+- ✅ Inicia **todos** os serviços em paralelo (api-gateway + auth-service + tasks-service)
+- ✅ Inicia **watch mode** nos packages (types e utils) para rebuild automático
+- ✅ Hot reload em todos os serviços
+- ✅ Um único terminal!
+
+**Como funciona:**
+
+```
+npm run dev
+    │
+    ├─> @jungle/types (tsc --watch)
+    ├─> @jungle/utils (tsc --watch)
+    ├─> api-gateway (nest start --watch)
+    ├─> auth-service (nest start --watch)
+    └─> tasks-service (nest start --watch)
+
+Todas rodando em paralelo! 🔥
+Mudou algo em @jungle/types? → Rebuild automático → Serviços detectam e recarregam
+```
+
+### Pré-requisitos
+
+Certifique-se de ter PostgreSQL e RabbitMQ rodando localmente:
+
+```bash
+# PostgreSQL na porta 5432
+# RabbitMQ na porta 5672
+
+# Ou ajuste os arquivos .env em cada serviço para apontar para instâncias remotas
 ```
 
 ## Variáveis de Ambiente
@@ -131,20 +172,56 @@ O arquivo `.env` na raiz controla as variáveis para o Docker Compose:
 
 ## Comandos Disponíveis
 
+### Desenvolvimento
+
 ```bash
-# Desenvolvimento (todos os serviços)
+# Setup inicial (primeira vez)
+npm run setup
+
+# Rodar tudo em desenvolvimento (serviços + packages em watch mode)
 npm run dev
 
-# Build (todos os serviços)
+# Rodar apenas os serviços (sem watch nos packages)
+npm run dev:services
+
+# Rodar um serviço específico
+npm run dev --workspace=api-gateway
+npm run dev --workspace=auth-service
+npm run dev --workspace=tasks-service
+```
+
+### Build
+
+```bash
+# Build completo (packages + serviços)
 npm run build
 
-# Lint
+# Build apenas dos packages compartilhados
+npm run build:packages
+
+# Build de um workspace específico
+npm run build --workspace=@jungle/types
+npm run build --workspace=auth-service
+npm run build --workspace=tasks-service
+```
+
+### Qualidade de Código
+
+```bash
+# Executar lint em todos os projetos
 npm run lint
 
-# Lint com fix
+# Lint com correção automática
 npm run lint:fix
 
-# Limpar builds
+# Executar testes
+npm run test
+```
+
+### Limpeza
+
+```bash
+# Limpar builds e node_modules
 npm run clean
 ```
 
@@ -234,6 +311,109 @@ curl -X GET http://localhost:3001/api/auth/profile \
 }
 ```
 
+### Tarefas (via API Gateway)
+
+**Base URL**: `http://localhost:3001/api/tasks`
+
+**⚠️ Todos os endpoints de tarefas requerem autenticação (Bearer Token)**
+
+#### POST /api/tasks
+
+Cria uma nova tarefa.
+
+```bash
+curl -X POST http://localhost:3001/api/tasks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN" \
+  -d '{
+    "title": "Implementar nova feature",
+    "description": "Adicionar funcionalidade X ao sistema",
+    "priority": "HIGH",
+    "status": "TODO",
+    "assignees": [1, 2],
+    "dueDate": "2025-11-15T23:59:59.000Z"
+  }'
+```
+
+**Priority**: `LOW`, `MEDIUM`, `HIGH`, `URGENT`
+**Status**: `TODO`, `IN_PROGRESS`, `REVIEW`, `DONE`
+
+**Response**:
+
+```json
+{
+  "id": 1,
+  "title": "Implementar nova feature",
+  "description": "Adicionar funcionalidade X ao sistema",
+  "priority": "HIGH",
+  "status": "TODO",
+  "assignees": ["1", "2"],
+  "dueDate": "2025-11-15T23:59:59.000Z",
+  "createdBy": 5,
+  "createdAt": "2025-11-08T01:00:00.000Z",
+  "updatedAt": "2025-11-08T01:00:00.000Z"
+}
+```
+
+#### GET /api/tasks
+
+Lista todas as tarefas.
+
+```bash
+curl -X GET http://localhost:3001/api/tasks \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+#### GET /api/tasks/:id
+
+Obtém uma tarefa específica.
+
+```bash
+curl -X GET http://localhost:3001/api/tasks/1 \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+#### PATCH /api/tasks/:id
+
+Atualiza uma tarefa existente.
+
+```bash
+curl -X PATCH http://localhost:3001/api/tasks/1 \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN" \
+  -d '{
+    "status": "DONE",
+    "priority": "MEDIUM"
+  }'
+```
+
+#### DELETE /api/tasks/:id
+
+Deleta uma tarefa.
+
+```bash
+curl -X DELETE http://localhost:3001/api/tasks/1 \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+{
+  "message": "Tarefa deletada com sucesso"
+}
+```
+
+### Eventos RabbitMQ
+
+O Tasks Service publica eventos no RabbitMQ para cada operação:
+
+- **`task.created`**: Quando uma tarefa é criada
+- **`task.updated`**: Quando uma tarefa é atualizada
+- **`task.deleted`**: Quando uma tarefa é deletada
+
+Esses eventos podem ser consumidos por outros serviços para implementar notificações, logs de auditoria, etc.
+
 ## Rate Limiting
 
 A API Gateway possui rate limiting configurado:
@@ -275,37 +455,6 @@ Configurações ESLint compartilhadas.
 
 ```javascript
 import jungleConfig from "@jungle/eslint-config/nestjs.js";
-```
-
-## Troubleshooting
-
-### Containers não iniciam
-
-```bash
-# Verifique os logs
-docker-compose logs
-
-# Reconstrua as imagens
-docker-compose up -d --build
-```
-
-### Erro de conexão com o banco de dados
-
-```bash
-# Verifique se o PostgreSQL está rodando
-docker-compose ps db
-
-# Verifique os logs do auth-service
-docker-compose logs auth-service
-```
-
-### Porta já em uso
-
-Se alguma porta já estiver em uso, você pode alterar no `docker-compose.yml`:
-
-```yaml
-ports:
-  - "3002:3001" # Muda a porta do host para 3002
 ```
 
 ## Limpeza

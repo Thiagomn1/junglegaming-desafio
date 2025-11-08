@@ -16,6 +16,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .addTag('auth', 'Endpoints de autenticação')
+    .addTag('tasks', 'Endpoints de gerenciamento de tarefas')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);

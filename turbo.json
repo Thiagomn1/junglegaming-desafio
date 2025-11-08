@@ -2,6 +2,7 @@
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
@@ -15,6 +16,7 @@
       "cache": false
     },
     "start:dev": {
+      "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
     },
@@ -35,7 +37,18 @@
       "cache": false
     }
   },
-  "globalEnv": ["NODE_ENV", "JWT_SECRET", "DB_HOST", "DB_USER", "DB_PASS", "DB_NAME"],
+  "globalEnv": [
+    "NODE_ENV",
+    "JWT_SECRET",
+    "DB_HOST",
+    "DB_PORT",
+    "DB_USER",
+    "DB_PASS",
+    "DB_NAME",
+    "RABBITMQ_URL",
+    "AUTH_SERVICE_URL",
+    "TASKS_SERVICE_URL"
+  ],
   "globalDependencies": [
     "tsconfig.json",
     "package.json"

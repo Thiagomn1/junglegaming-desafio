@@ -10,14 +10,16 @@
   "main": "index.js",
   "scripts": {
     "dev": "turbo run dev --parallel",
+    "dev:services": "turbo run dev --parallel --filter='./apps/*'",
     "build": "turbo run build",
+    "build:packages": "turbo run build --filter='./packages/*'",
     "start": "turbo run start",
     "start:dev": "turbo run start:dev --parallel",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint -- --fix",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "install:all": "npm install && npm install --prefix apps/api-gateway && npm install --prefix apps/auth-service"
+    "setup": "npm install && npm run build:packages"
   },
   "keywords": [],
   "author": "",
