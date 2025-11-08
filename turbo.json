@@ -35,6 +35,15 @@
     },
     "clean": {
       "cache": false
+    },
+        "migration:generate": {
+      "cache": false
+    },
+    "migration:run": {
+      "cache": false
+    },
+    "migration:revert": {
+      "cache": false
     }
   },
   "globalEnv": [

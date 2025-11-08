@@ -4,10 +4,12 @@ RUN apk update
 WORKDIR /app
 RUN npm install -g turbo
 
+# Etapa de pruning (remove pacotes desnecessários)
 FROM base AS pruner
 COPY . .
 RUN turbo prune auth-service --docker
 
+# Etapa de build
 FROM base AS builder
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
@@ -18,6 +20,7 @@ COPY turbo.json turbo.json
 
 RUN turbo run build --filter=auth-service...
 
+# Etapa final (runner)
 FROM node:20-alpine AS runner
 WORKDIR /app
 
@@ -33,6 +36,6 @@ RUN npm install --omit=dev
 
 USER nestjs
 WORKDIR /app/apps/auth-service
-EXPOSE 3000
+EXPOSE 4000
 
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npm run migration:run && node dist/main.js"]

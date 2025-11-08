@@ -35,4 +35,4 @@ USER nestjs
 WORKDIR /app/apps/tasks-service
 EXPOSE 5000
 
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npm run migration:run && node dist/main.js"]

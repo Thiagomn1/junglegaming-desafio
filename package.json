@@ -21,7 +21,11 @@
     "lint:fix": "turbo run lint -- --fix",
     "test": "turbo run test",
     "clean": "turbo run clean && rm -rf node_modules",
-    "setup": "npm install && npm run build:packages"
+    "setup": "npm install && npm run build:packages",
+    "migration:generate-helper": "./scripts/generate-migration.sh",
+    "migration:run": "npm run migration:run --workspace=auth-service && npm run migration:run --workspace=tasks-service",
+    "migration:revert": "npm run migration:revert --workspace=tasks-service && npm run migration:revert --workspace=auth-service",
+    "migration:show": "npm run migration:show --workspace=auth-service && npm run migration:show --workspace=tasks-service"
   },
   "keywords": [],
   "author": "",

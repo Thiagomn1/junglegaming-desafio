@@ -1,14 +1,14 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Task } from "./task.entity";
-import { CreateTaskDto, UpdateTaskDto } from "./dto";
-import { RabbitMQService } from "../rabbitmq/rabbitmq.service";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Task } from './task.entity';
+import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import {
   TaskCreatedEvent,
   TaskUpdatedEvent,
   TaskDeletedEvent,
-} from "@jungle/types";
+} from '@jungle/types';
 
 @Injectable()
 export class TasksService {
@@ -37,7 +37,7 @@ export class TasksService {
       dueDate: savedTask.dueDate,
       timestamp: new Date().toISOString(),
     };
-    await this.rabbitMQService.publishEvent("task.created", event);
+    await this.rabbitMQService.publishEvent('task.created', event);
 
     return savedTask;
   }
@@ -45,7 +45,7 @@ export class TasksService {
   async findAll(): Promise<Task[]> {
     return this.tasksRepository.find({
       order: {
-        createdAt: "DESC",
+        createdAt: 'DESC',
       },
     });
   }
@@ -78,7 +78,7 @@ export class TasksService {
       changes: updateTaskDto,
       timestamp: new Date().toISOString(),
     };
-    await this.rabbitMQService.publishEvent("task.updated", event);
+    await this.rabbitMQService.publishEvent('task.updated', event);
 
     return updatedTask;
   }
@@ -94,6 +94,6 @@ export class TasksService {
       deletedBy: userId || task.createdBy,
       timestamp: new Date().toISOString(),
     };
-    await this.rabbitMQService.publishEvent("task.deleted", event);
+    await this.rabbitMQService.publishEvent('task.deleted', event);
   }
 }

@@ -4,10 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";
-import { TaskPriority, TaskStatus } from "@jungle/types";
+} from 'typeorm';
+import { TaskPriority, TaskStatus } from '@jungle/types';
 
-@Entity("tasks")
+@Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn()
   id: number;
@@ -15,27 +15,27 @@ export class Task {
   @Column()
   title: string;
 
-  @Column("text")
+  @Column('text')
   description: string;
 
-  @Column({ type: "timestamp", nullable: true })
+  @Column({ type: 'timestamp', nullable: true })
   dueDate: Date;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: TaskPriority,
     default: TaskPriority.MEDIUM,
   })
   priority: TaskPriority;
 
   @Column({
-    type: "enum",
+    type: 'enum',
     enum: TaskStatus,
     default: TaskStatus.TODO,
   })
   status: TaskStatus;
 
-  @Column("simple-array", { default: "" })
+  @Column('simple-array', { default: '' })
   assignees: number[]; // Array de user IDs
 
   @Column()

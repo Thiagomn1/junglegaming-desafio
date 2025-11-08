@@ -220,6 +220,47 @@ npm run test
 npm run clean
 ```
 
+### Migrations (TypeORM)
+
+**Comandos para todos os serviços:**
+
+```bash
+# Ver status de todas as migrations
+npm run migration:show
+
+# Rodar todas as migrations pendentes
+npm run migration:run
+
+# Reverter última migration de todos os serviços
+npm run migration:revert
+```
+
+**Comandos para serviço específico:**
+
+```bash
+# Ver migrations pendentes
+npm run migration:show --workspace=auth-service
+npm run migration:show --workspace=tasks-service
+
+# Rodar migrations
+npm run migration:run --workspace=auth-service
+npm run migration:run --workspace=tasks-service
+
+# Reverter última migration
+npm run migration:revert --workspace=auth-service
+npm run migration:revert --workspace=tasks-service
+
+# Gerar nova migration (após alterar entities)
+npm run migration:generate src/migrations/NomeDaMigration --workspace=auth-service
+npm run migration:generate src/migrations/NomeDaMigration --workspace=tasks-service
+
+# Criar migration vazia
+npm run migration:create src/migrations/NomeDaMigration --workspace=auth-service
+npm run migration:create src/migrations/NomeDaMigration --workspace=tasks-service
+```
+
+> **Nota**: As migrations rodam automaticamente quando os serviços sobem com `migrationsRun: true`. Para produção, recomenda-se desabilitar isso e rodar as migrations manualmente antes de deploy usando `npm run migration:run`.
+
 ## Endpoints da API
 
 ### Autenticação (via API Gateway)
