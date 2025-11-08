@@ -16,6 +16,7 @@ jungle-challenge/
 │   ├── tsconfig/             # Configurações TypeScript compartilhadas
 │   └── eslint-config/        # Configurações ESLint compartilhadas
 ├── docker-compose.yml
+├── docker-compose.dev.yml
 └── package.json
 ```
 
@@ -35,33 +36,7 @@ git clone <repository-url>
 cd jungle-challenge
 ```
 
-### 2. Configure as variáveis de ambiente
-
-**Para desenvolvimento com Docker (recomendado):**
-
-O projeto já vem com um arquivo `.env` na raiz com valores padrão para desenvolvimento. Se quiser customizar:
-
-```bash
-# Edite o arquivo .env na raiz do projeto
-nano .env
-```
-
-**Para desenvolvimento local (sem Docker):**
-
-Copie os arquivos de exemplo para cada serviço:
-
-```bash
-# API Gateway
-cp apps/api-gateway/.env.example apps/api-gateway/.env
-
-# Auth Service
-cp apps/auth-service/.env.example apps/auth-service/.env
-
-# Tasks Service
-cp apps/tasks-service/.env.example apps/tasks-service/.env
-```
-
-### 3. Inicie os containers com Docker Compose
+### 2. Inicie os containers com Docker Compose
 
 ```bash
 docker-compose up -d
@@ -75,7 +50,7 @@ Isso irá iniciar:
 - ✅ Tasks Service (porta 5000)
 - ✅ API Gateway (porta 3001)
 
-### 4. Verifique se os serviços estão rodando
+### 3. Verifique se os serviços estão rodando
 
 ```bash
 docker-compose ps
@@ -83,7 +58,7 @@ docker-compose ps
 
 Você deve ver todos os containers com status "Up".
 
-### 5. Acesse a documentação da API
+### 4. Acesse a documentação da API
 
 - **API Gateway Swagger**: http://localhost:3001/api/docs
 - **Auth Service Swagger**: http://localhost:4000/api/docs
@@ -112,6 +87,23 @@ Este comando faz:
 
 - ✅ `npm install` - Instala dependências de todos os workspaces
 - ✅ Build automático dos packages compartilhados (@jungle/types e @jungle/utils)
+
+### Configurar Variáveis de Ambiente (Desenvolvimento Local)
+
+Copie os arquivos de exemplo para cada serviço:
+
+```bash
+# API Gateway
+cp apps/api-gateway/.env.example apps/api-gateway/.env
+
+# Auth Service
+cp apps/auth-service/.env.example apps/auth-service/.env
+
+# Tasks Service
+cp apps/tasks-service/.env.example apps/tasks-service/.env
+```
+
+Edite os arquivos `.env` de cada serviço conforme necessário para apontar para suas instâncias locais de PostgreSQL e RabbitMQ.
 
 ### Executar o Projeto
 
@@ -143,32 +135,31 @@ Todas rodando em paralelo! 🔥
 Mudou algo em @jungle/types? → Rebuild automático → Serviços detectam e recarregam
 ```
 
-### Pré-requisitos
+### Infraestrutura para Desenvolvimento Local
 
-Certifique-se de ter PostgreSQL e RabbitMQ rodando localmente:
+Você precisa de PostgreSQL e RabbitMQ rodando. Temos duas opções:
+
+**Opção 1: Usar Docker apenas para infraestrutura (RECOMENDADO)** 🐳
 
 ```bash
-# PostgreSQL na porta 5432
-# RabbitMQ na porta 5672
+# Inicia PostgreSQL e RabbitMQ em containers
+npm run dev:infra
 
-# Ou ajuste os arquivos .env em cada serviço para apontar para instâncias remotas
+# Verificar se subiram
+docker ps
+
+# Parar quando terminar
+npm run dev:infra:stop
 ```
 
-## Variáveis de Ambiente
+Isso sobe:
 
-### Arquivo .env na raiz (Docker Compose)
+- ✅ PostgreSQL na porta 5432
+- ✅ RabbitMQ na porta 5672 (Management UI: http://localhost:15672)
 
-O arquivo `.env` na raiz controla as variáveis para o Docker Compose:
+**Opção 2: Instalar PostgreSQL e RabbitMQ localmente**
 
-| Variável                | Descrição              | Valor Padrão   |
-| ----------------------- | ---------------------- | -------------- |
-| `NODE_ENV`              | Ambiente de execução   | `development`  |
-| `JWT_SECRET`            | Chave secreta para JWT | `secret`       |
-| `POSTGRES_USER`         | Usuário do PostgreSQL  | `postgres`     |
-| `POSTGRES_PASSWORD`     | Senha do PostgreSQL    | `password`     |
-| `POSTGRES_DB`           | Nome do banco de dados | `challenge_db` |
-| `RABBITMQ_DEFAULT_USER` | Usuário do RabbitMQ    | `admin`        |
-| `RABBITMQ_DEFAULT_PASS` | Senha do RabbitMQ      | `admin`        |
+Instale manualmente PostgreSQL e RabbitMQ em sua máquina e ajuste os arquivos `.env` de cada serviço para apontar para essas instâncias.
 
 ## Comandos Disponíveis
 
@@ -177,6 +168,10 @@ O arquivo `.env` na raiz controla as variáveis para o Docker Compose:
 ```bash
 # Setup inicial (primeira vez)
 npm run setup
+
+# Infraestrutura (apenas para dev local sem Docker completo)
+npm run dev:infra          # Inicia PostgreSQL e RabbitMQ em containers
+npm run dev:infra:stop     # Para a infraestrutura
 
 # Rodar tudo em desenvolvimento (serviços + packages em watch mode)
 npm run dev
@@ -455,18 +450,4 @@ Configurações ESLint compartilhadas.
 
 ```javascript
 import jungleConfig from "@jungle/eslint-config/nestjs.js";
-```
-
-## Limpeza
-
-Para parar e remover todos os containers:
-
-```bash
-docker-compose down
-```
-
-Para remover também os volumes (dados do banco):
-
-```bash
-docker-compose down -v
 ```
