@@ -10,8 +10,8 @@ import { TasksModule } from './tasks/tasks.module';
   imports: [
     ThrottlerModule.forRoot([
       {
-        ttl: 60000, // 60 seconds
-        limit: 10, // 10 requests per 60 seconds
+        ttl: 60000, // 60 segundos
+        limit: 10, // 10 requests a cada 60 segundos
       },
     ]),
     AuthModule,

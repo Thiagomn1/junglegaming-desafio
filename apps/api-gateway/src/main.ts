@@ -9,7 +9,7 @@ async function bootstrap() {
   // Global validation pipe
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  // Swagger Configuration
+  // Swagger
   const config = new DocumentBuilder()
     .setTitle('API Gateway')
     .setDescription('Gateway principal da aplicação')
