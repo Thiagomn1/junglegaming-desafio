@@ -3,15 +3,15 @@ import {
   Logger,
   OnModuleInit,
   OnModuleDestroy,
-} from "@nestjs/common";
-import * as amqp from "amqplib";
+} from '@nestjs/common';
+import * as amqp from 'amqplib';
 
 @Injectable()
 export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(RabbitMQService.name);
   private connection: amqp.Connection;
   private channel: amqp.Channel;
-  private readonly exchange = "tasks_events";
+  private readonly exchange = 'tasks_events';
 
   async onModuleInit() {
     await this.connect();
@@ -24,18 +24,18 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private async connect() {
     try {
       const rabbitMQUrl =
-        process.env.RABBITMQ_URL || "amqp://admin:admin@rabbitmq:5672";
+        process.env.RABBITMQ_URL || 'amqp://admin:admin@rabbitmq:5672';
 
       this.connection = await amqp.connect(rabbitMQUrl);
       this.channel = await this.connection.createChannel();
 
-      await this.channel.assertExchange(this.exchange, "topic", {
+      await this.channel.assertExchange(this.exchange, 'topic', {
         durable: true,
       });
 
-      this.logger.log("✅ Conectado ao RabbitMQ");
+      this.logger.log('✅ Conectado ao RabbitMQ');
     } catch (error) {
-      this.logger.error("❌ Erro ao conectar ao RabbitMQ:", error);
+      this.logger.error('❌ Erro ao conectar ao RabbitMQ:', error);
       // Retry em 5 segundos
       setTimeout(() => {
         void this.connect();
@@ -47,9 +47,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     try {
       await this.channel?.close();
       await this.connection?.close();
-      this.logger.log("Desconectado do RabbitMQ");
+      this.logger.log('Desconectado do RabbitMQ');
     } catch (error) {
-      this.logger.error("Erro ao desconectar do RabbitMQ:", error);
+      this.logger.error('Erro ao desconectar do RabbitMQ:', error);
     }
   }
 
@@ -57,7 +57,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
     try {
       if (!this.channel) {
         this.logger.warn(
-          "Canal RabbitMQ não disponível, tentando reconectar...",
+          'Canal RabbitMQ não disponível, tentando reconectar...',
         );
         await this.connect();
       }

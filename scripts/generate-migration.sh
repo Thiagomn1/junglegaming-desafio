@@ -45,3 +45,8 @@ npx turbo run migration:generate --filter=$WORKSPACE -- src/migrations/$MIGRATIO
 echo ""
 echo "✅ Migration gerada com sucesso!"
 echo "📋 Verifique em apps/$WORKSPACE/src/migrations/"
+echo ""
+echo "Próximos passos:"
+echo "  1. Revise a migration gerada"
+echo "  2. Rebuild e restart: docker-compose build $WORKSPACE && docker-compose up -d"
+echo ""

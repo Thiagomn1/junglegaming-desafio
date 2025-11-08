@@ -47,7 +47,10 @@ export class TasksController {
 
   @Get()
   @ApiOperation({ summary: 'Listar todas as tarefas' })
-  @ApiResponse({ status: 200, description: 'Lista de tarefas retornada com sucesso' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de tarefas retornada com sucesso',
+  })
   async findAll(@Request() req: any) {
     const token = req.headers.authorization;
     const { data } = await firstValueFrom(

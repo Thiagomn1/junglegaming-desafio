@@ -36,7 +36,8 @@ export class CreateTaskDto {
 
   @ApiProperty({
     description: 'Descrição detalhada da tarefa',
-    example: 'Implementar sistema de autenticação usando JWT com refresh tokens',
+    example:
+      'Implementar sistema de autenticação usando JWT com refresh tokens',
   })
   @IsString({ message: 'Descrição deve ser uma string' })
   @IsNotEmpty({ message: 'Descrição é obrigatória' })

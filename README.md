@@ -67,7 +67,7 @@ Você deve ver todos os containers com status "Up".
 
 ## Desenvolvimento Local (sem Docker)
 
-### 🚀 Fluxo Rápido (TL;DR)
+### 🚀 Fluxo Rápido
 
 ```bash
 npm run setup   # Apenas na primeira vez
@@ -82,11 +82,6 @@ Pronto! Todos os serviços e packages em watch mode rodando em paralelo.
 # 1. Instale todas as dependências e build os packages
 npm run setup
 ```
-
-Este comando faz:
-
-- ✅ `npm install` - Instala dependências de todos os workspaces
-- ✅ Build automático dos packages compartilhados (@jungle/types e @jungle/utils)
 
 ### Configurar Variáveis de Ambiente (Desenvolvimento Local)
 
@@ -111,28 +106,6 @@ Edite os arquivos `.env` de cada serviço conforme necessário para apontar para
 
 ```bash
 npm run dev
-```
-
-Este comando:
-
-- ✅ Inicia **todos** os serviços em paralelo (api-gateway + auth-service + tasks-service)
-- ✅ Inicia **watch mode** nos packages (types e utils) para rebuild automático
-- ✅ Hot reload em todos os serviços
-- ✅ Um único terminal!
-
-**Como funciona:**
-
-```
-npm run dev
-    │
-    ├─> @jungle/types (tsc --watch)
-    ├─> @jungle/utils (tsc --watch)
-    ├─> api-gateway (nest start --watch)
-    ├─> auth-service (nest start --watch)
-    └─> tasks-service (nest start --watch)
-
-Todas rodando em paralelo! 🔥
-Mudou algo em @jungle/types? → Rebuild automático → Serviços detectam e recarregam
 ```
 
 ### Infraestrutura para Desenvolvimento Local
@@ -222,6 +195,60 @@ npm run clean
 
 ### Migrations (TypeORM)
 
+> **⚙️ Migrations Automáticas**: As migrations rodam **automaticamente** quando os serviços iniciam (`migrationsRun: true`).
+
+#### 🚀 Workflow Completo: Alterar uma Entity
+
+Quando você adiciona/remove campos de uma entity, siga este fluxo:
+
+**1. Altere a entity**
+
+```typescript
+// apps/auth-service/src/auth/user.entity.ts
+@Entity("users")
+export class User {
+  // ... campos existentes
+
+  @Column({ nullable: true })
+  avatar?: string; // NOVO CAMPO
+}
+```
+
+**2. Gere a migration automaticamente**
+
+```bash
+# Usando o helper script (RECOMENDADO - mais fácil)
+npm run migration:generate-helper auth AddUserAvatar
+npm run migration:generate-helper tasks AddTaskTags
+
+# Ou manualmente
+npm run migration:generate src/migrations/AddUserAvatar --workspace=auth-service
+```
+
+**3. Aplicar a migration**
+
+Com Docker:
+
+```bash
+# Rebuild e restart do serviço
+docker-compose build auth-service
+docker-compose up -d auth-service
+
+# A migration roda automaticamente no startup!
+```
+
+Dev local (sem Docker):
+
+```bash
+# Restart do serviço (Ctrl+C e rodar de novo)
+npm run dev
+
+# Ou rodar manualmente
+npm run migration:run --workspace=auth-service
+```
+
+#### 📋 Comandos Disponíveis
+
 **Comandos para todos os serviços:**
 
 ```bash
@@ -238,11 +265,15 @@ npm run migration:revert
 **Comandos para serviço específico:**
 
 ```bash
+# Gerar migration automaticamente (compara entity vs banco)
+npm run migration:generate-helper auth NomeDaMigration
+npm run migration:generate-helper tasks NomeDaMigration
+
 # Ver migrations pendentes
 npm run migration:show --workspace=auth-service
 npm run migration:show --workspace=tasks-service
 
-# Rodar migrations
+# Rodar migrations manualmente
 npm run migration:run --workspace=auth-service
 npm run migration:run --workspace=tasks-service
 
@@ -250,16 +281,19 @@ npm run migration:run --workspace=tasks-service
 npm run migration:revert --workspace=auth-service
 npm run migration:revert --workspace=tasks-service
 
-# Gerar nova migration (após alterar entities)
-npm run migration:generate src/migrations/NomeDaMigration --workspace=auth-service
-npm run migration:generate src/migrations/NomeDaMigration --workspace=tasks-service
-
-# Criar migration vazia
+# Criar migration vazia (para escrever SQL manualmente)
 npm run migration:create src/migrations/NomeDaMigration --workspace=auth-service
-npm run migration:create src/migrations/NomeDaMigration --workspace=tasks-service
 ```
 
-> **Nota**: As migrations rodam automaticamente quando os serviços sobem com `migrationsRun: true`. Para produção, recomenda-se desabilitar isso e rodar as migrations manualmente antes de deploy usando `npm run migration:run`.
+#### ⚠️ Quando Precisar Resetar o Banco Completamente
+
+```bash
+# ATENÇÃO: Isso deleta TODOS os dados!
+docker-compose down -v
+docker-compose up -d
+
+# Migrations rodam automaticamente no restart
+```
 
 ## Endpoints da API
 

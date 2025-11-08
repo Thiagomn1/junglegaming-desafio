@@ -1,7 +1,7 @@
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class CreateTasksTable1731030000000 implements MigrationInterface {
-  name = "CreateTasksTable1731030000000";
+  name = 'CreateTasksTable1731030000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Criar tipos ENUM
