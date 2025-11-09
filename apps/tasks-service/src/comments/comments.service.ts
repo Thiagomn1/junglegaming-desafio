@@ -1,12 +1,12 @@
-import { Injectable, NotFoundException, Inject, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ClientProxy } from '@nestjs/microservices';
 import { Comment } from './comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Task } from '../tasks/task.entity';
 import { TaskHistoryService } from '../task-history/task-history.service';
 import { TaskHistoryAction } from '../task-history/task-history.entity';
+import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
 export class CommentsService {
@@ -17,8 +17,7 @@ export class CommentsService {
     private commentsRepository: Repository<Comment>,
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
-    @Inject('RABBITMQ_SERVICE')
-    private rabbitClient: ClientProxy,
+    private rabbitMQService: RabbitMQService,
     private taskHistoryService: TaskHistoryService,
   ) {}
 
@@ -27,7 +26,6 @@ export class CommentsService {
     createCommentDto: CreateCommentDto,
     userId: number,
   ): Promise<Comment> {
-    // Verificar se a tarefa existe
     const task = await this.tasksRepository.findOne({ where: { id: taskId } });
     if (!task) {
       throw new NotFoundException(`Tarefa com ID ${taskId} não encontrada`);
@@ -50,18 +48,13 @@ export class CommentsService {
     );
 
     // Publicar evento no RabbitMQ
-    this.rabbitClient
-      .emit('task.comment.created', {
-        commentId: savedComment.id,
-        taskId,
-        authorId: userId,
-        text: savedComment.text,
-        createdAt: savedComment.createdAt,
-      })
-      .subscribe({
-        error: (err) =>
-          this.logger.error('Erro ao publicar evento de comentário', err),
-      });
+    await this.rabbitMQService.publishEvent('task.comment.created', {
+      commentId: savedComment.id,
+      taskId,
+      authorId: userId,
+      text: savedComment.text,
+      createdAt: savedComment.createdAt,
+    });
 
     this.logger.log(
       `Comentário ${savedComment.id} criado na tarefa ${taskId} por usuário ${userId}`,

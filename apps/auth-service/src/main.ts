@@ -8,7 +8,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
 
-  // Swagger Configuration
+  // Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('API de Autenticação')
     .setDescription('Serviço de autenticação e autorização')
