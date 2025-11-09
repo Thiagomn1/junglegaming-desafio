@@ -101,3 +101,9 @@ export interface TaskCommentCreatedEvent {
   text: string;
   createdAt: Date;
 }
+
+export interface TaskWithMetadata extends Task {
+  isOverdue: boolean;
+  isDueSoon: boolean;
+  daysUntilDue: number | null;
+}

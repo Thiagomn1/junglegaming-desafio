@@ -2,10 +2,10 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
-import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { AuthResponseDto, RegisterDto, LoginDto, UserResponseDto } from './dto';
 import { JwtPayload } from '@jungle/types';
+import { hashPassword, comparePassword } from '@jungle/utils';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +23,7 @@ export class AuthService {
     });
     if (existing) throw new UnauthorizedException('Usuário já existe');
 
-    const hash = await bcrypt.hash(password, 10);
+    const hash = await hashPassword(password);
     const user = this.usersRepository.create({
       email,
       username,
@@ -40,7 +40,7 @@ export class AuthService {
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user) throw new UnauthorizedException('Credenciais inválidas');
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await comparePassword(password, user.password);
     if (!valid) throw new UnauthorizedException('Credenciais inválidas');
 
     return this.generateTokens(user);

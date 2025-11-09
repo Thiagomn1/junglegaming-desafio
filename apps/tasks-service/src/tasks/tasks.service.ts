@@ -10,7 +10,14 @@ import {
   TaskCreatedEvent,
   TaskUpdatedEvent,
   TaskDeletedEvent,
+  TaskWithMetadata,
 } from '@jungle/types';
+import {
+  formatDate,
+  isTaskOverdue,
+  isTaskDueSoon,
+  getDaysUntilDue,
+} from '@jungle/utils';
 
 @Injectable()
 export class TasksService {
@@ -30,7 +37,6 @@ export class TasksService {
 
     const savedTask = await this.tasksRepository.save(task);
 
-    // Registrar no histórico
     await this.taskHistoryService.createHistoryEntry(
       savedTask.id,
       TaskHistoryAction.CREATED,
@@ -38,7 +44,6 @@ export class TasksService {
       { title: savedTask.title, priority: savedTask.priority },
     );
 
-    // Publicar evento task.created
     const event: TaskCreatedEvent = {
       taskId: savedTask.id,
       title: savedTask.title,
@@ -46,7 +51,7 @@ export class TasksService {
       assignees: savedTask.assignees,
       priority: savedTask.priority,
       dueDate: savedTask.dueDate,
-      timestamp: new Date().toISOString(),
+      timestamp: formatDate(new Date()),
     };
     await this.rabbitMQService.publishEvent('task.created', event);
 
@@ -93,7 +98,7 @@ export class TasksService {
       taskId: updatedTask.id,
       updatedBy: userId || task.createdBy,
       changes: updateTaskDto as Record<string, unknown>,
-      timestamp: new Date().toISOString(),
+      timestamp: formatDate(new Date()),
     };
     await this.rabbitMQService.publishEvent('task.updated', event);
 
@@ -115,8 +120,27 @@ export class TasksService {
     const event: TaskDeletedEvent = {
       taskId: id,
       deletedBy: userId || task.createdBy,
-      timestamp: new Date().toISOString(),
+      timestamp: formatDate(new Date()),
     };
     await this.rabbitMQService.publishEvent('task.deleted', event);
+  }
+
+  async findAllWithMetadata(): Promise<TaskWithMetadata[]> {
+    const tasks = await this.findAll();
+    return tasks.map((task) => this.addTaskMetadata(task));
+  }
+
+  async findOneWithMetadata(id: number): Promise<TaskWithMetadata> {
+    const task = await this.findOne(id);
+    return this.addTaskMetadata(task);
+  }
+
+  private addTaskMetadata(task: Task): TaskWithMetadata {
+    return {
+      ...task,
+      isOverdue: isTaskOverdue(task.dueDate),
+      isDueSoon: isTaskDueSoon(task.dueDate),
+      daysUntilDue: task.dueDate ? getDaysUntilDue(task.dueDate) : null,
+    };
   }
 }
