@@ -564,7 +564,7 @@ import { JwtPayload, AuthTokens } from "@jungle/types";
 Funções utilitárias compartilhadas.
 
 ```typescript
-import { isValidEmail, Logger } from "@jungle/utils";
+import { Logger } from "@jungle/utils";
 ```
 
 ### @jungle/tsconfig

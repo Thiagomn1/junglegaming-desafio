@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  Matches,
+} from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({
@@ -16,6 +22,9 @@ export class RegisterDto {
   })
   @IsString({ message: 'Nome de usuário deve ser uma string' })
   @IsNotEmpty({ message: 'Nome de usuário é obrigatório' })
+  @Matches(/^[a-zA-Z0-9_-]{3,20}$/, {
+    message: 'Username deve ter 3-20 caracteres (letras, números, _ ou -)',
+  })
   username: string;
 
   @ApiProperty({

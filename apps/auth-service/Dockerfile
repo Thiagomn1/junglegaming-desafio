@@ -1,5 +1,5 @@
 FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat python3 make g++
 RUN apk update
 WORKDIR /app
 RUN npm install -g turbo
@@ -22,6 +22,7 @@ RUN turbo run build --filter=auth-service...
 
 # Etapa final (runner)
 FROM node:20-alpine AS runner
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs
@@ -32,7 +33,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/package*.json .
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
 
-RUN npm install --omit=dev
+# Install production dependencies including bcrypt native compilation
+RUN npm install --omit=dev && \
+    cd packages/utils && npm rebuild bcrypt --build-from-source && cd ../..
 
 USER nestjs
 WORKDIR /app/apps/auth-service

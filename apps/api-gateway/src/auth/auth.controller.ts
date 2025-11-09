@@ -5,8 +5,10 @@ import {
   Body,
   UseGuards,
   Request,
+  HttpException,
 } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import {
   ApiTags,
@@ -28,26 +30,42 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Registrar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário registrado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Dados de entrada inválidos' })
   @ApiResponse({ status: 401, description: 'Usuário já existe' })
   async register(@Body() registerDto: RegisterDto) {
-    const { data } = await firstValueFrom(
-      this.httpService.post(
-        `${this.authServiceUrl}/auth/register`,
-        registerDto,
-      ),
-    );
-    return data;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.post(
+          `${this.authServiceUrl}/auth/register`,
+          registerDto,
+        ),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
   }
 
   @Post('login')
   @ApiOperation({ summary: 'Fazer login' })
   @ApiResponse({ status: 200, description: 'Login realizado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Dados de entrada inválidos' })
   @ApiResponse({ status: 401, description: 'Credenciais inválidas' })
   async login(@Body() loginDto: LoginDto) {
-    const { data } = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto),
-    );
-    return data;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.post(`${this.authServiceUrl}/auth/login`, loginDto),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
   }
 
   @Post('refresh')
@@ -55,10 +73,20 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Token renovado com sucesso' })
   @ApiResponse({ status: 401, description: 'Token de atualização inválido' })
   async refresh(@Body() refreshDto: RefreshDto) {
-    const { data } = await firstValueFrom(
-      this.httpService.post(`${this.authServiceUrl}/auth/refresh`, refreshDto),
-    );
-    return data;
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.post(
+          `${this.authServiceUrl}/auth/refresh`,
+          refreshDto,
+        ),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
   }
 
   @Get('profile')
@@ -68,12 +96,19 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Perfil do usuário recuperado' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   async getProfile(@Request() req: any) {
-    const token = req.headers.authorization;
-    const { data } = await firstValueFrom(
-      this.httpService.get(`${this.authServiceUrl}/auth/profile`, {
-        headers: { Authorization: token },
-      }),
-    );
-    return data;
+    try {
+      const token = req.headers.authorization;
+      const { data } = await firstValueFrom(
+        this.httpService.get(`${this.authServiceUrl}/auth/profile`, {
+          headers: { Authorization: token },
+        }),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
   }
 }

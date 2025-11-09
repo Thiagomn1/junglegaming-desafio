@@ -37,25 +37,21 @@ export class TasksController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Listar todas as tarefas com metadados' })
+  @ApiOperation({ summary: 'Listar todas as tarefas' })
   @ApiResponse({
     status: 200,
-    description:
-      'Lista de tarefas com informações sobre vencimento retornada com sucesso',
+    description: 'Lista de tarefas retornada com sucesso',
   })
   async findAll() {
-    return this.tasksService.findAllWithMetadata();
+    return this.tasksService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Obter uma tarefa específica com metadados' })
-  @ApiResponse({
-    status: 200,
-    description: 'Tarefa com informações sobre vencimento retornada com sucesso',
-  })
+  @ApiOperation({ summary: 'Obter uma tarefa específica' })
+  @ApiResponse({ status: 200, description: 'Tarefa retornada com sucesso' })
   @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
   async findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.tasksService.findOneWithMetadata(id);
+    return this.tasksService.findOne(id);
   }
 
   @Patch(':id')

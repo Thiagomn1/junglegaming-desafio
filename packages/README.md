@@ -46,7 +46,7 @@ Funções utilitárias reutilizáveis.
 **Uso:**
 
 ```typescript
-import { isValidEmail, Logger, addDays } from "@jungle/utils";
+import { isValidEmail, Logger, formatDate } from "@jungle/utils";
 
 const logger = new Logger("MyService");
 logger.info("Mensagem de log");
