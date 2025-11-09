@@ -217,12 +217,14 @@ export class User {
 **2. Gere a migration automaticamente**
 
 ```bash
-# Usando o helper script (RECOMENDADO - mais fácil)
+# Usando o helper script
 npm run migration:generate-helper auth AddUserAvatar
 npm run migration:generate-helper tasks AddTaskTags
+```
 
+```bash
 # Ou manualmente
-npm run migration:generate src/migrations/AddUserAvatar --workspace=auth-service
+DB_HOST=localhost npm run migration:generate src/migrations/AddUserAvatar --workspace=auth-service
 ```
 
 **3. Aplicar a migration**
@@ -260,29 +262,6 @@ npm run migration:run
 
 # Reverter última migration de todos os serviços
 npm run migration:revert
-```
-
-**Comandos para serviço específico:**
-
-```bash
-# Gerar migration automaticamente (compara entity vs banco)
-npm run migration:generate-helper auth NomeDaMigration
-npm run migration:generate-helper tasks NomeDaMigration
-
-# Ver migrations pendentes
-npm run migration:show --workspace=auth-service
-npm run migration:show --workspace=tasks-service
-
-# Rodar migrations manualmente
-npm run migration:run --workspace=auth-service
-npm run migration:run --workspace=tasks-service
-
-# Reverter última migration
-npm run migration:revert --workspace=auth-service
-npm run migration:revert --workspace=tasks-service
-
-# Criar migration vazia (para escrever SQL manualmente)
-npm run migration:create src/migrations/NomeDaMigration --workspace=auth-service
 ```
 
 #### ⚠️ Quando Precisar Resetar o Banco Completamente
@@ -474,6 +453,67 @@ curl -X DELETE http://localhost:3001/api/tasks/1 \
 }
 ```
 
+### Comentários (via API Gateway)
+
+**Base URL**: `http://localhost:3001/api/tasks/:id/comments`
+
+**⚠️ Todos os endpoints de comentários requerem autenticação (Bearer Token)**
+
+#### POST /api/tasks/:id/comments
+
+Cria um comentário em uma tarefa.
+
+```bash
+curl -X POST http://localhost:3001/api/tasks/1/comments \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN" \
+  -d '{
+    "text": "Este é um comentário sobre a tarefa"
+  }'
+```
+
+**Response**:
+
+```json
+{
+  "id": 1,
+  "text": "Este é um comentário sobre a tarefa",
+  "authorId": 5,
+  "taskId": 1,
+  "createdAt": "2025-11-08T10:00:00.000Z"
+}
+```
+
+#### GET /api/tasks/:id/comments
+
+Lista todos os comentários de uma tarefa (ordenados do mais recente para o mais antigo).
+
+```bash
+curl -X GET http://localhost:3001/api/tasks/1/comments \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+[
+  {
+    "id": 2,
+    "text": "Segundo comentário",
+    "authorId": 3,
+    "taskId": 1,
+    "createdAt": "2025-11-08T11:00:00.000Z"
+  },
+  {
+    "id": 1,
+    "text": "Este é um comentário sobre a tarefa",
+    "authorId": 5,
+    "taskId": 1,
+    "createdAt": "2025-11-08T10:00:00.000Z"
+  }
+]
+```
+
 ### Eventos RabbitMQ
 
 O Tasks Service publica eventos no RabbitMQ para cada operação:
@@ -481,8 +521,26 @@ O Tasks Service publica eventos no RabbitMQ para cada operação:
 - **`task.created`**: Quando uma tarefa é criada
 - **`task.updated`**: Quando uma tarefa é atualizada
 - **`task.deleted`**: Quando uma tarefa é deletada
+- **`task.comment.created`**: Quando um comentário é criado em uma tarefa
 
 Esses eventos podem ser consumidos por outros serviços para implementar notificações, logs de auditoria, etc.
+
+### Histórico de Auditoria (TaskHistory)
+
+Todas as operações nas tarefas são automaticamente registradas na tabela `task_history` para auditoria:
+
+- **`created`**: Quando uma tarefa é criada
+- **`updated`**: Quando uma tarefa é atualizada
+- **`commented`**: Quando um comentário é adicionado
+- **`deleted`**: Quando uma tarefa é deletada
+
+Cada entrada de histórico inclui:
+
+- `taskId`: ID da tarefa relacionada
+- `action`: Tipo de ação executada
+- `userId`: ID do usuário que executou a ação
+- `metadata`: Dados adicionais em formato JSON (mudanças, texto do comentário, etc.)
+- `timestamp`: Data/hora da ação
 
 ## Rate Limiting
 

@@ -7,6 +7,7 @@ import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { JwtStrategy } from '../strategies/jwt.strategy';
+import { TaskHistoryModule } from '../task-history/task-history.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JwtStrategy } from '../strategies/jwt.strategy';
       secret: process.env.JWT_SECRET || 'secret',
       signOptions: { expiresIn: '1h' },
     }),
+    TaskHistoryModule,
   ],
   controllers: [TasksController],
   providers: [TasksService, RabbitMQService, JwtStrategy],

@@ -1,6 +1,9 @@
 import { DataSource } from 'typeorm';
 import { Task } from './tasks/task.entity';
-import path from 'path';
+import { Comment } from './comments/comment.entity';
+import { TaskHistory } from './task-history/task-history.entity';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -9,14 +12,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASS || 'password',
   database: process.env.DB_NAME || 'challenge_db',
-  entities: [Task],
-  migrations: [
-    path.resolve(
-      __dirname,
-      process.env.NODE_ENV === 'production'
-        ? 'migrations/*.js'
-        : 'migrations/*.ts',
-    ),
-  ],
+  entities: [Task, Comment, TaskHistory],
+  migrations: [isProduction ? 'dist/migrations/*.js' : 'src/migrations/*.ts'],
   synchronize: false,
 });

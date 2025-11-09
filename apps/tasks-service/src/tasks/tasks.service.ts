@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { Task } from './task.entity';
 import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
+import { TaskHistoryService } from '../task-history/task-history.service';
+import { TaskHistoryAction } from '../task-history/task-history.entity';
 import {
   TaskCreatedEvent,
   TaskUpdatedEvent,
@@ -16,6 +18,7 @@ export class TasksService {
     @InjectRepository(Task)
     private tasksRepository: Repository<Task>,
     private rabbitMQService: RabbitMQService,
+    private taskHistoryService: TaskHistoryService,
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
@@ -26,6 +29,14 @@ export class TasksService {
     });
 
     const savedTask = await this.tasksRepository.save(task);
+
+    // Registrar no histórico
+    await this.taskHistoryService.createHistoryEntry(
+      savedTask.id,
+      TaskHistoryAction.CREATED,
+      userId,
+      { title: savedTask.title, priority: savedTask.priority },
+    );
 
     // Publicar evento task.created
     const event: TaskCreatedEvent = {
@@ -71,6 +82,14 @@ export class TasksService {
 
     const updatedTask = await this.tasksRepository.save(task);
 
+    // Registrar no histórico
+    await this.taskHistoryService.createHistoryEntry(
+      updatedTask.id,
+      TaskHistoryAction.UPDATED,
+      userId,
+      { changes: updateTaskDto },
+    );
+
     // Publicar evento task.updated
     const event: TaskUpdatedEvent = {
       taskId: updatedTask.id,
@@ -85,6 +104,14 @@ export class TasksService {
 
   async remove(id: number, userId?: number): Promise<void> {
     const task = await this.findOne(id);
+
+    // Registrar no histórico ANTES de deletar
+    await this.taskHistoryService.createHistoryEntry(
+      id,
+      TaskHistoryAction.DELETED,
+      userId,
+      { title: task.title },
+    );
 
     await this.tasksRepository.remove(task);
 

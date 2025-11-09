@@ -1,6 +1,7 @@
 import { DataSource } from 'typeorm';
 import { User } from './auth/user.entity';
-import path from 'path';
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -10,13 +11,6 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS || 'password',
   database: process.env.DB_NAME || 'challenge_db',
   entities: [User],
-  migrations: [
-    path.resolve(
-      __dirname,
-      process.env.NODE_ENV === 'production'
-        ? 'migrations/*.js'
-        : 'migrations/*.ts',
-    ),
-  ],
+  migrations: [isProduction ? 'dist/migrations/*.js' : 'src/migrations/*.ts'],
   synchronize: false,
 });

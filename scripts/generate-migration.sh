@@ -33,14 +33,14 @@ echo "🚀 Gerando migration: $MIGRATION_NAME para $WORKSPACE"
 if docker ps --format '{{.Names}}' | grep -q '^db$'; then
   echo "✅ Banco de dados já está rodando (container: db)"
 else
-  echo "🗄️  Subindo banco de dados (docker-compose.yml)..."
+  echo "🗄️  Subindo banco de dados..."
   docker-compose up -d db
   sleep 3
 fi
 
-# Executar migration generate dentro do container Node
+# Executar migration generate com DB_HOST=localhost para conectar localmente
 echo "📝 Gerando migration no workspace: $WORKSPACE"
-npx turbo run migration:generate --filter=$WORKSPACE -- src/migrations/$MIGRATION_NAME
+DB_HOST=localhost DB_PORT=5432 npx turbo run migration:generate --filter=$WORKSPACE -- src/migrations/$MIGRATION_NAME
 
 echo ""
 echo "✅ Migration gerada com sucesso!"

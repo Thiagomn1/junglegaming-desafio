@@ -110,4 +110,46 @@ export class TasksController {
     );
     return data;
   }
+
+  @Post(':id/comments')
+  @ApiOperation({ summary: 'Criar comentário em uma tarefa' })
+  @ApiResponse({ status: 201, description: 'Comentário criado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
+  async createComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() createCommentDto: { text: string },
+    @Request() req: any,
+  ) {
+    const token = req.headers.authorization;
+    const { data } = await firstValueFrom(
+      this.httpService.post(
+        `${this.tasksServiceUrl}/tasks/${id}/comments`,
+        createCommentDto,
+        {
+          headers: { Authorization: token },
+        },
+      ),
+    );
+    return data;
+  }
+
+  @Get(':id/comments')
+  @ApiOperation({ summary: 'Listar comentários de uma tarefa' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de comentários retornada com sucesso',
+  })
+  @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
+  async findComments(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    const token = req.headers.authorization;
+    const { data } = await firstValueFrom(
+      this.httpService.get(`${this.tasksServiceUrl}/tasks/${id}/comments`, {
+        headers: { Authorization: token },
+      }),
+    );
+    return data;
+  }
 }

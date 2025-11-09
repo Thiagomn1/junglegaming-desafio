@@ -18,10 +18,11 @@ async function bootstrap() {
   // Configuração do Swagger
   const config = new DocumentBuilder()
     .setTitle('API de Tarefas')
-    .setDescription('Serviço de gerenciamento de tarefas')
+    .setDescription('Serviço de gerenciamento de tarefas e comentários')
     .setVersion('1.0')
     .addBearerAuth()
-    .addTag('tasks', 'Endpoints de gerenciamento de tarefas')
+    .addTag('Tasks', 'Endpoints de gerenciamento de tarefas')
+    .addTag('Comments', 'Endpoints de comentários em tarefas')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
