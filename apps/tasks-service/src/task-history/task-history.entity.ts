@@ -7,13 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Task } from '../tasks/task.entity';
-
-export enum TaskHistoryAction {
-  CREATED = 'created',
-  UPDATED = 'updated',
-  COMMENTED = 'commented',
-  DELETED = 'deleted',
-}
+import { TaskHistoryAction } from '@jungle/types';
 
 @Entity('task_history')
 export class TaskHistory {

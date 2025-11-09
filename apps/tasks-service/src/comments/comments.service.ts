@@ -5,7 +5,7 @@ import { Comment } from './comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { Task } from '../tasks/task.entity';
 import { TaskHistoryService } from '../task-history/task-history.service';
-import { TaskHistoryAction } from '../task-history/task-history.entity';
+import { TaskHistoryAction, TaskCommentCreatedEvent } from '@jungle/types';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 
 @Injectable()
@@ -39,7 +39,6 @@ export class CommentsService {
 
     const savedComment = await this.commentsRepository.save(comment);
 
-    // Registrar no histórico
     await this.taskHistoryService.createHistoryEntry(
       taskId,
       TaskHistoryAction.COMMENTED,
@@ -47,14 +46,14 @@ export class CommentsService {
       { commentId: savedComment.id, text: savedComment.text },
     );
 
-    // Publicar evento no RabbitMQ
-    await this.rabbitMQService.publishEvent('task.comment.created', {
+    const event: TaskCommentCreatedEvent = {
       commentId: savedComment.id,
       taskId,
       authorId: userId,
       text: savedComment.text,
       createdAt: savedComment.createdAt,
-    });
+    };
+    await this.rabbitMQService.publishEvent('task.comment.created', event);
 
     this.logger.log(
       `Comentário ${savedComment.id} criado na tarefa ${taskId} por usuário ${userId}`,
@@ -64,7 +63,6 @@ export class CommentsService {
   }
 
   async findByTaskId(taskId: number): Promise<Comment[]> {
-    // Verificar se a tarefa existe
     const task = await this.tasksRepository.findOne({ where: { id: taskId } });
     if (!task) {
       throw new NotFoundException(`Tarefa com ID ${taskId} não encontrada`);

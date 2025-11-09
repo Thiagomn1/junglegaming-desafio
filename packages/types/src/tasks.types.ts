@@ -1,4 +1,3 @@
-// Task Priority Enum
 export enum TaskPriority {
   LOW = "LOW",
   MEDIUM = "MEDIUM",
@@ -6,7 +5,6 @@ export enum TaskPriority {
   URGENT = "URGENT",
 }
 
-// Task Status Enum
 export enum TaskStatus {
   TODO = "TODO",
   IN_PROGRESS = "IN_PROGRESS",
@@ -14,7 +12,6 @@ export enum TaskStatus {
   DONE = "DONE",
 }
 
-// Task Entity Type
 export interface Task {
   id: number;
   title: string;
@@ -28,7 +25,6 @@ export interface Task {
   updatedAt: Date;
 }
 
-// DTOs
 export interface CreateTaskDto {
   title: string;
   description: string;
@@ -47,7 +43,34 @@ export interface UpdateTaskDto {
   assignees?: number[];
 }
 
-// RabbitMQ Event Payloads
+export enum TaskHistoryAction {
+  CREATED = "created",
+  UPDATED = "updated",
+  COMMENTED = "commented",
+  DELETED = "deleted",
+}
+
+export interface Comment {
+  id: number;
+  text: string;
+  authorId: number;
+  taskId: number;
+  createdAt: Date;
+}
+
+export interface CreateCommentDto {
+  text: string;
+}
+
+export interface TaskHistoryEntry {
+  id: number;
+  taskId: number;
+  action: TaskHistoryAction;
+  userId: number | null;
+  metadata: Record<string, unknown> | null;
+  timestamp: Date;
+}
+
 export interface TaskCreatedEvent {
   taskId: number;
   title: string;
@@ -61,7 +84,7 @@ export interface TaskCreatedEvent {
 export interface TaskUpdatedEvent {
   taskId: number;
   updatedBy: number;
-  changes: Record<string, any>;
+  changes: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -69,4 +92,12 @@ export interface TaskDeletedEvent {
   taskId: number;
   deletedBy: number;
   timestamp: string;
+}
+
+export interface TaskCommentCreatedEvent {
+  commentId: number;
+  taskId: number;
+  authorId: number;
+  text: string;
+  createdAt: Date;
 }

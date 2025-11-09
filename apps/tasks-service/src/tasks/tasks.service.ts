@@ -5,8 +5,8 @@ import { Task } from './task.entity';
 import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { TaskHistoryService } from '../task-history/task-history.service';
-import { TaskHistoryAction } from '../task-history/task-history.entity';
 import {
+  TaskHistoryAction,
   TaskCreatedEvent,
   TaskUpdatedEvent,
   TaskDeletedEvent,
@@ -82,7 +82,6 @@ export class TasksService {
 
     const updatedTask = await this.tasksRepository.save(task);
 
-    // Registrar no histórico
     await this.taskHistoryService.createHistoryEntry(
       updatedTask.id,
       TaskHistoryAction.UPDATED,
@@ -90,11 +89,10 @@ export class TasksService {
       { changes: updateTaskDto },
     );
 
-    // Publicar evento task.updated
     const event: TaskUpdatedEvent = {
       taskId: updatedTask.id,
       updatedBy: userId || task.createdBy,
-      changes: updateTaskDto,
+      changes: updateTaskDto as Record<string, unknown>,
       timestamp: new Date().toISOString(),
     };
     await this.rabbitMQService.publishEvent('task.updated', event);
@@ -105,7 +103,6 @@ export class TasksService {
   async remove(id: number, userId?: number): Promise<void> {
     const task = await this.findOne(id);
 
-    // Registrar no histórico ANTES de deletar
     await this.taskHistoryService.createHistoryEntry(
       id,
       TaskHistoryAction.DELETED,
@@ -115,7 +112,6 @@ export class TasksService {
 
     await this.tasksRepository.remove(task);
 
-    // Publicar evento task.deleted
     const event: TaskDeletedEvent = {
       taskId: id,
       deletedBy: userId || task.createdBy,

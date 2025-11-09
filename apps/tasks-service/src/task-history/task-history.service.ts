@@ -1,7 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { TaskHistory, TaskHistoryAction } from './task-history.entity';
+import { TaskHistory } from './task-history.entity';
+import { TaskHistoryAction } from '@jungle/types';
 
 @Injectable()
 export class TaskHistoryService {

@@ -19,7 +19,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto, CreateCommentDto } from './dto';
 
 @ApiTags('tasks')
 @Controller('api/tasks')
@@ -117,7 +117,7 @@ export class TasksController {
   @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
   async createComment(
     @Param('id', ParseIntPipe) id: number,
-    @Body() createCommentDto: { text: string },
+    @Body() createCommentDto: CreateCommentDto,
     @Request() req: any,
   ) {
     const token = req.headers.authorization;

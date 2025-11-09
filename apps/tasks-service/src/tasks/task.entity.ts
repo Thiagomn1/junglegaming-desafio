@@ -36,10 +36,10 @@ export class Task {
   status: TaskStatus;
 
   @Column('simple-array', { default: '' })
-  assignees: number[]; // Array de user IDs
+  assignees: number[];
 
   @Column()
-  createdBy: number; // User ID do criador
+  createdBy: number;
 
   @CreateDateColumn()
   createdAt: Date;
