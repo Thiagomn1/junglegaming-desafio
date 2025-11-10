@@ -9,7 +9,8 @@ jungle-challenge/
 ├── apps/
 │   ├── api-gateway/          # Gateway principal (porta 3001)
 │   ├── auth-service/         # Serviço de autenticação (porta 4000)
-│   └── tasks-service/        # Serviço de gerenciamento de tarefas (porta 5000)
+│   ├── tasks-service/        # Serviço de gerenciamento de tarefas (porta 5000)
+│   └── notifications-service/ # Serviço de notificações (porta 6000)
 ├── packages/
 │   ├── types/                # Tipos TypeScript compartilhados
 │   ├── utils/                # Funções utilitárias compartilhadas
@@ -48,6 +49,7 @@ Isso irá iniciar:
 - ✅ RabbitMQ (portas 5672 e 15672)
 - ✅ Auth Service (porta 4000)
 - ✅ Tasks Service (porta 5000)
+- ✅ Notifications Service (porta 6000)
 - ✅ API Gateway (porta 3001)
 
 ### 3. Verifique se os serviços estão rodando
@@ -63,6 +65,7 @@ Você deve ver todos os containers com status "Up".
 - **API Gateway Swagger**: http://localhost:3001/api/docs
 - **Auth Service Swagger**: http://localhost:4000/api/docs
 - **Tasks Service Swagger**: http://localhost:5000/api/docs
+- **Notifications Service Swagger**: http://localhost:6000/api/docs
 - **RabbitMQ Management**: http://localhost:15672 (user: admin, password: admin)
 
 ## Desenvolvimento Local (sem Docker)
@@ -514,6 +517,194 @@ curl -X GET http://localhost:3001/api/tasks/1/comments \
 ]
 ```
 
+### Notificações (via API Gateway)
+
+**Base URL**: `http://localhost:3001/notifications`
+
+**⚠️ Todos os endpoints de notificações requerem autenticação (Bearer Token)**
+
+O sistema de notificações funciona em tempo real através de eventos RabbitMQ e WebSocket. Notificações são automaticamente criadas quando:
+
+- Uma tarefa é criada
+- Uma tarefa tem seu status alterado
+- Um comentário é adicionado em uma tarefa (notifica o dono da tarefa, exceto se o autor do comentário for o próprio dono)
+
+#### GET /notifications
+
+Lista todas as notificações do usuário autenticado (ordenadas da mais recente para a mais antiga).
+
+```bash
+curl -X GET http://localhost:3001/notifications \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+[
+  {
+    "id": 3,
+    "type": "task.comment.created",
+    "message": "Novo comentário em: Implementar feature",
+    "userId": 1,
+    "taskId": 5,
+    "read": false,
+    "metadata": {
+      "commentId": 6,
+      "taskTitle": "Implementar feature",
+      "authorId": 2,
+      "text": "Comentário exemplo"
+    },
+    "createdAt": "2025-11-10T19:16:41.429Z"
+  },
+  {
+    "id": 2,
+    "type": "task.status_changed",
+    "message": "Status da tarefa alterado para: DONE",
+    "userId": 1,
+    "taskId": 5,
+    "read": true,
+    "metadata": {
+      "changes": {
+        "status": "DONE"
+      }
+    },
+    "createdAt": "2025-11-10T19:13:12.613Z"
+  }
+]
+```
+
+#### GET /notifications/unread
+
+Lista apenas as notificações não lidas do usuário.
+
+```bash
+curl -X GET http://localhost:3001/notifications/unread \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+#### GET /notifications/unread/count
+
+Retorna a contagem de notificações não lidas (útil para badges/contadores na UI).
+
+```bash
+curl -X GET http://localhost:3001/notifications/unread/count \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+{
+  "count": 3
+}
+```
+
+#### PATCH /notifications/:id/read
+
+Marca uma notificação específica como lida.
+
+```bash
+curl -X PATCH http://localhost:3001/notifications/5/read \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+{
+  "id": 5,
+  "type": "task.created",
+  "message": "Nova tarefa criada: Título da tarefa",
+  "userId": 1,
+  "taskId": 10,
+  "read": true,
+  "metadata": { ... },
+  "createdAt": "2025-11-10T20:00:00.000Z"
+}
+```
+
+#### PATCH /notifications/read-all
+
+Marca todas as notificações do usuário como lidas.
+
+```bash
+curl -X PATCH http://localhost:3001/notifications/read-all \
+  -H "Authorization: Bearer SEU_ACCESS_TOKEN"
+```
+
+**Response**:
+
+```json
+{
+  "success": true
+}
+```
+
+### WebSocket - Notificações em Tempo Real
+
+O Notifications Service oferece um gateway WebSocket para receber notificações em tempo real.
+
+**URL**: `ws://localhost:6000/notifications`
+
+**Autenticação**: JWT token via query parameter ou header
+
+#### Conectar ao WebSocket
+
+```javascript
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:6000/notifications', {
+  auth: {
+    token: 'SEU_ACCESS_TOKEN'
+  }
+});
+
+// Evento de conexão bem-sucedida
+socket.on('connected', (data) => {
+  console.log('Conectado:', data);
+  // { message: 'Conectado ao servidor de notificações', userId: 7 }
+});
+
+// Receber notificações em tempo real
+socket.on('notification', (notification) => {
+  console.log('Nova notificação:', notification);
+  /* {
+    type: 'task.created',
+    message: 'Nova tarefa criada: Título',
+    taskId: 5,
+    metadata: { ... },
+    timestamp: '2025-11-10T20:00:00.000Z'
+  } */
+});
+
+// Evento de erro de autenticação
+socket.on('error', (error) => {
+  console.error('Erro:', error);
+});
+```
+
+### Tipos de Notificações
+
+O sistema suporta os seguintes tipos de notificações:
+
+- **`task.created`**: Nova tarefa foi criada (notifica o criador)
+- **`task.updated`**: Tarefa foi atualizada
+- **`task.status_changed`**: Status da tarefa foi alterado (tipo específico de update)
+- **`task.deleted`**: Tarefa foi deletada
+- **`task.comment.created`**: Novo comentário em uma tarefa (notifica o dono da tarefa, exceto auto-comentários)
+
+Cada notificação inclui:
+
+- `id`: ID único da notificação
+- `type`: Tipo da notificação (enum)
+- `message`: Mensagem descritiva em português
+- `userId`: ID do usuário que receberá a notificação
+- `taskId`: ID da tarefa relacionada
+- `read`: Status de leitura (boolean)
+- `metadata`: Dados adicionais em formato JSON (varia por tipo)
+- `createdAt`: Data/hora de criação
+
 ### Eventos RabbitMQ
 
 O Tasks Service publica eventos no RabbitMQ para cada operação:
@@ -523,7 +714,11 @@ O Tasks Service publica eventos no RabbitMQ para cada operação:
 - **`task.deleted`**: Quando uma tarefa é deletada
 - **`task.comment.created`**: Quando um comentário é criado em uma tarefa
 
-Esses eventos podem ser consumidos por outros serviços para implementar notificações, logs de auditoria, etc.
+Esses eventos são consumidos automaticamente pelo Notifications Service, que:
+
+1. Persiste a notificação no banco de dados
+2. Envia a notificação em tempo real via WebSocket para usuários conectados
+3. Filtra notificações irrelevantes (ex: não notifica auto-comentários)
 
 ### Histórico de Auditoria (TaskHistory)
 

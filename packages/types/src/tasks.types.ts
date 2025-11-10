@@ -100,6 +100,8 @@ export interface TaskCommentCreatedEvent {
   authorId: number;
   text: string;
   createdAt: Date;
+  taskAuthorId: number;
+  taskTitle: string;
 }
 
 export interface TaskWithMetadata extends Task {

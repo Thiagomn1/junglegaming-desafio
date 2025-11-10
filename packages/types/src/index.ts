@@ -7,4 +7,5 @@ export * from "./common.types";
 // Tasks types
 export * from "./tasks.types";
 
-// Futuros: notifications.types, etc.
+// Notifications types
+export * from "./notifications.types";
