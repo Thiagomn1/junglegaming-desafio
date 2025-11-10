@@ -99,6 +99,9 @@ cp apps/auth-service/.env.example apps/auth-service/.env
 
 # Tasks Service
 cp apps/tasks-service/.env.example apps/tasks-service/.env
+
+# Notifications Service
+cp apps/notifications-service/.env.example apps/notifications-service/.env
 ```
 
 Edite os arquivos `.env` de cada serviço conforme necessário para apontar para suas instâncias locais de PostgreSQL e RabbitMQ.
