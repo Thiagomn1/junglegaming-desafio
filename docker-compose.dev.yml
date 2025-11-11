@@ -3,7 +3,7 @@
 # Use: docker-compose -f docker-compose.dev.yml up -d
 
 services:
-  # Frontend em modo de desenvolvimento (opcional - descomente se quiser)
+  # Frontend em modo de desenvolvimento
   # web-dev:
   #   container_name: jungle-dev-web
   #   build:

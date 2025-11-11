@@ -112,6 +112,7 @@ cp apps/web/.env.example apps/web/.env
 Edite os arquivos `.env` de cada serviço conforme necessário para apontar para suas instâncias locais de PostgreSQL e RabbitMQ.
 
 Para o frontend, configure as URLs da API no `.env`:
+
 ```bash
 VITE_API_URL=http://localhost:3001
 VITE_WS_URL=http://localhost:6000/notifications
@@ -666,23 +667,23 @@ O Notifications Service oferece um gateway WebSocket para receber notificações
 #### Conectar ao WebSocket
 
 ```javascript
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
-const socket = io('http://localhost:6000/notifications', {
+const socket = io("http://localhost:6000/notifications", {
   auth: {
-    token: 'SEU_ACCESS_TOKEN'
-  }
+    token: "SEU_ACCESS_TOKEN",
+  },
 });
 
 // Evento de conexão bem-sucedida
-socket.on('connected', (data) => {
-  console.log('Conectado:', data);
+socket.on("connected", (data) => {
+  console.log("Conectado:", data);
   // { message: 'Conectado ao servidor de notificações', userId: 7 }
 });
 
 // Receber notificações em tempo real
-socket.on('notification', (notification) => {
-  console.log('Nova notificação:', notification);
+socket.on("notification", (notification) => {
+  console.log("Nova notificação:", notification);
   /* {
     type: 'task.created',
     message: 'Nova tarefa criada: Título',
@@ -693,8 +694,8 @@ socket.on('notification', (notification) => {
 });
 
 // Evento de erro de autenticação
-socket.on('error', (error) => {
-  console.error('Erro:', error);
+socket.on("error", (error) => {
+  console.error("Erro:", error);
 });
 ```
 
@@ -824,6 +825,7 @@ apps/web/
 ### Executar Frontend Localmente
 
 **Desenvolvimento:**
+
 ```bash
 cd apps/web
 npm install
@@ -833,6 +835,7 @@ npm run dev
 O frontend estará disponível em: http://localhost:3000
 
 **Build de produção:**
+
 ```bash
 npm run build
 npm run serve
@@ -854,26 +857,18 @@ Configurações disponíveis:
 ### Docker
 
 **Produção (com Nginx):**
+
 ```bash
 docker build -f apps/web/Dockerfile -t jungle-web .
 docker run -p 80:80 jungle-web
 ```
 
 **Desenvolvimento (com hot reload):**
+
 ```bash
 docker build -f apps/web/Dockerfile.dev -t jungle-web-dev .
 docker run -p 3000:3000 -v $(pwd)/apps/web:/app/apps/web jungle-web-dev
 ```
-
-### Features Implementadas
-
-- ✅ Roteamento com TanStack Router
-- ✅ State management com TanStack Query
-- ✅ Styled components com Tailwind CSS v4
-- ✅ TypeScript para type-safety
-- ✅ Hot reload em desenvolvimento
-- ✅ Build otimizado para produção
-- ✅ Servido via Nginx com cache e compression
 
 ### Integração com Backend
 
@@ -881,36 +876,3 @@ O frontend se comunica com o backend através de:
 
 1. **REST API** - Via API Gateway (porta 3001)
 2. **WebSocket** - Para notificações em tempo real (porta 6000)
-
-Exemplo de configuração do cliente HTTP:
-
-```typescript
-// src/lib/api.ts
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-
-export const api = {
-  async login(email: string, password: string) {
-    const response = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return response.json();
-  },
-};
-```
-
-Exemplo de WebSocket:
-
-```typescript
-// src/lib/websocket.ts
-import { io } from 'socket.io-client';
-
-const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:6000/notifications';
-
-export const socket = io(WS_URL, {
-  auth: {
-    token: localStorage.getItem('accessToken'),
-  },
-});
-```
