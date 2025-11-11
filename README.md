@@ -51,6 +51,7 @@ Isso irá iniciar:
 - ✅ Tasks Service (porta 5000)
 - ✅ Notifications Service (porta 6000)
 - ✅ API Gateway (porta 3001)
+- ✅ Frontend Web (porta 80)
 
 ### 3. Verifique se os serviços estão rodando
 
@@ -60,8 +61,9 @@ docker-compose ps
 
 Você deve ver todos os containers com status "Up".
 
-### 4. Acesse a documentação da API
+### 4. Acesse a aplicação
 
+- **Frontend**: http://localhost
 - **API Gateway Swagger**: http://localhost:3001/api/docs
 - **Auth Service Swagger**: http://localhost:4000/api/docs
 - **Tasks Service Swagger**: http://localhost:5000/api/docs
@@ -102,9 +104,18 @@ cp apps/tasks-service/.env.example apps/tasks-service/.env
 
 # Notifications Service
 cp apps/notifications-service/.env.example apps/notifications-service/.env
+
+# Frontend Web
+cp apps/web/.env.example apps/web/.env
 ```
 
 Edite os arquivos `.env` de cada serviço conforme necessário para apontar para suas instâncias locais de PostgreSQL e RabbitMQ.
+
+Para o frontend, configure as URLs da API no `.env`:
+```bash
+VITE_API_URL=http://localhost:3001
+VITE_WS_URL=http://localhost:6000/notifications
+```
 
 ### Executar o Projeto
 
@@ -781,4 +792,125 @@ Configurações ESLint compartilhadas.
 
 ```javascript
 import jungleConfig from "@jungle/eslint-config/nestjs.js";
+```
+
+## Frontend (React + Vite)
+
+O frontend está localizado em `apps/web` e utiliza as seguintes tecnologias:
+
+- **React 19** - Framework UI
+- **Vite** - Build tool e dev server
+- **TanStack Router** - Roteamento com type-safety
+- **TanStack Query** - Data fetching e cache
+- **Tailwind CSS v4** - Estilização
+- **TypeScript** - Type safety
+
+### Estrutura do Frontend
+
+```
+apps/web/
+├── src/
+│   ├── routes/          # Rotas da aplicação (TanStack Router)
+│   ├── components/      # Componentes reutilizáveis
+│   ├── lib/             # Utilitários e configurações
+│   └── main.tsx         # Entry point
+├── public/              # Assets estáticos
+├── Dockerfile           # Build de produção (Nginx)
+├── Dockerfile.dev       # Build de desenvolvimento
+├── nginx.conf           # Configuração do Nginx
+└── vite.config.ts       # Configuração do Vite
+```
+
+### Executar Frontend Localmente
+
+**Desenvolvimento:**
+```bash
+cd apps/web
+npm install
+npm run dev
+```
+
+O frontend estará disponível em: http://localhost:3000
+
+**Build de produção:**
+```bash
+npm run build
+npm run serve
+```
+
+### Variáveis de Ambiente
+
+Crie um arquivo `.env` baseado no `.env.example`:
+
+```bash
+cp apps/web/.env.example apps/web/.env
+```
+
+Configurações disponíveis:
+
+- `VITE_API_URL` - URL da API Gateway (padrão: http://localhost:3001)
+- `VITE_WS_URL` - URL do WebSocket de notificações (padrão: http://localhost:6000/notifications)
+
+### Docker
+
+**Produção (com Nginx):**
+```bash
+docker build -f apps/web/Dockerfile -t jungle-web .
+docker run -p 80:80 jungle-web
+```
+
+**Desenvolvimento (com hot reload):**
+```bash
+docker build -f apps/web/Dockerfile.dev -t jungle-web-dev .
+docker run -p 3000:3000 -v $(pwd)/apps/web:/app/apps/web jungle-web-dev
+```
+
+### Features Implementadas
+
+- ✅ Roteamento com TanStack Router
+- ✅ State management com TanStack Query
+- ✅ Styled components com Tailwind CSS v4
+- ✅ TypeScript para type-safety
+- ✅ Hot reload em desenvolvimento
+- ✅ Build otimizado para produção
+- ✅ Servido via Nginx com cache e compression
+
+### Integração com Backend
+
+O frontend se comunica com o backend através de:
+
+1. **REST API** - Via API Gateway (porta 3001)
+2. **WebSocket** - Para notificações em tempo real (porta 6000)
+
+Exemplo de configuração do cliente HTTP:
+
+```typescript
+// src/lib/api.ts
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+export const api = {
+  async login(email: string, password: string) {
+    const response = await fetch(`${API_URL}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    return response.json();
+  },
+};
+```
+
+Exemplo de WebSocket:
+
+```typescript
+// src/lib/websocket.ts
+import { io } from 'socket.io-client';
+
+const WS_URL = import.meta.env.VITE_WS_URL || 'http://localhost:6000/notifications';
+
+export const socket = io(WS_URL, {
+  auth: {
+    token: localStorage.getItem('accessToken'),
+  },
+});
 ```

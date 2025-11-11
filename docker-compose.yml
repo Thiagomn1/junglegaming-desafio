@@ -1,4 +1,18 @@
 services:
+  web:
+    container_name: web
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    ports:
+      - '80:80'
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    networks:
+      - challenge-network
+    depends_on:
+      - api-gateway
+
   api-gateway:
     container_name: api-gateway
     build:
