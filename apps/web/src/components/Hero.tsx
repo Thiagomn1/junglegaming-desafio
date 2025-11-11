@@ -8,7 +8,6 @@ export function Hero() {
     <div className="flex pt-4 justify-center min-h-[calc(100vh-4rem)]">
       <div className="px-4 py-12">
         <div className="max-w-4xl mx-auto">
-          {/* Hero Section */}
           <div className="text-center mb-12">
             <Badge className="mb-4 px-3 py-1 bg-emerald-100 text-emerald-800">
               Gerenciamento Colaborativo
@@ -23,7 +22,6 @@ export function Hero() {
             </p>
           </div>
 
-          {/* Features Grid */}
           <div className="grid md:grid-cols-3 gap-6 mt-16">
             <Card className="border-slate-200 hover:shadow-lg transition-shadow">
               <CardContent className="px-6 py-4">
