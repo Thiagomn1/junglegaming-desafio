@@ -74,8 +74,18 @@ export interface Task {
   dueDate: string | null
   assignees?: Array<string>
   createdBy?: number
+  createdByUsername?: string
   createdAt: string
   updatedAt: string
+}
+
+export interface Comment {
+  id: number
+  text: string
+  authorId: number
+  authorName?: string
+  taskId: number
+  createdAt: string
 }
 
 export const tasksApi = {
@@ -115,5 +125,16 @@ export const tasksApi = {
   },
   deleteTask: async (id: string): Promise<void> => {
     await api.delete(`/tasks/${id}`)
+  },
+  getComments: async (taskId: string): Promise<Array<Comment>> => {
+    const response = await api.get(`/tasks/${taskId}/comments`)
+    return response.data
+  },
+  createComment: async (
+    taskId: string,
+    data: { text: string },
+  ): Promise<Comment> => {
+    const response = await api.post(`/tasks/${taskId}/comments`, data)
+    return response.data
   },
 }
