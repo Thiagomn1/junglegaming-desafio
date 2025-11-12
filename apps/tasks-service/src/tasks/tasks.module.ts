@@ -8,6 +8,7 @@ import { Task } from './task.entity';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { TaskHistoryModule } from '../task-history/task-history.module';
+import { AuthClientModule } from '../auth-client/auth-client.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TaskHistoryModule } from '../task-history/task-history.module';
       signOptions: { expiresIn: '1h' },
     }),
     TaskHistoryModule,
+    AuthClientModule,
   ],
   controllers: [TasksController],
   providers: [TasksService, RabbitMQService, JwtStrategy],

@@ -72,11 +72,13 @@ services:
       - DB_NAME=${POSTGRES_DB:-challenge_db}
       - JWT_SECRET=${JWT_SECRET:-secret}
       - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-admin}@rabbitmq:5672
+      - AUTH_SERVICE_URL=http://auth-service:4000
     networks:
       - challenge-network
     depends_on:
       - db
       - rabbitmq
+      - auth-service
 
   notifications-service:
     build:

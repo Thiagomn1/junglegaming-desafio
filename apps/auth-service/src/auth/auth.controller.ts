@@ -5,6 +5,8 @@ import {
   Get,
   UseGuards,
   Request,
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
@@ -75,5 +77,29 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Não autorizado' })
   async getProfile(@Request() req: any): Promise<UserResponseDto> {
     return this.authService.validateUser(req.user.id);
+  }
+
+  @Get('users/:id')
+  @ApiOperation({ summary: 'Obter informações básicas de um usuário por ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Informações do usuário',
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'number', example: 1 },
+        username: { type: 'string', example: 'john_doe' },
+        email: { type: 'string', example: 'john@example.com' },
+      },
+    },
+  })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado' })
+  async getUserById(@Param('id', ParseIntPipe) id: number) {
+    const user = await this.authService.validateUser(id);
+    return {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    };
   }
 }

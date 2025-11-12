@@ -17,7 +17,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from './dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 
 @ApiTags('tasks')
@@ -41,6 +41,7 @@ export class TasksController {
   @ApiResponse({
     status: 200,
     description: 'Lista de tarefas retornada com sucesso',
+    type: [TaskResponseDto],
   })
   async findAll() {
     return this.tasksService.findAll();
@@ -48,7 +49,11 @@ export class TasksController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Obter uma tarefa específica' })
-  @ApiResponse({ status: 200, description: 'Tarefa retornada com sucesso' })
+  @ApiResponse({
+    status: 200,
+    description: 'Tarefa retornada com sucesso',
+    type: TaskResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
   async findOne(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.findOne(id);

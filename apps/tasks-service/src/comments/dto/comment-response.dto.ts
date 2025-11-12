@@ -10,6 +10,12 @@ export class CommentResponseDto {
   @ApiProperty({ example: 1 })
   authorId: number;
 
+  @ApiProperty({
+    example: 'john_doe',
+    description: 'Username do autor do comentário',
+  })
+  authorName?: string;
+
   @ApiProperty({ example: 1 })
   taskId: number;
 

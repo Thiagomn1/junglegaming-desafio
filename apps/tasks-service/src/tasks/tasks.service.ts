@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './task.entity';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from './dto';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
 import { TaskHistoryService } from '../task-history/task-history.service';
 import {
@@ -12,6 +12,7 @@ import {
   TaskDeletedEvent,
 } from '@jungle/types';
 import { formatDate } from '@jungle/utils';
+import { AuthClientService } from '../auth-client/auth-client.service';
 
 @Injectable()
 export class TasksService {
@@ -20,6 +21,7 @@ export class TasksService {
     private tasksRepository: Repository<Task>,
     private rabbitMQService: RabbitMQService,
     private taskHistoryService: TaskHistoryService,
+    private authClientService: AuthClientService,
   ) {}
 
   async create(createTaskDto: CreateTaskDto, userId: number): Promise<Task> {
@@ -52,22 +54,38 @@ export class TasksService {
     return savedTask;
   }
 
-  async findAll(): Promise<Task[]> {
-    return this.tasksRepository.find({
+  async findAll(): Promise<TaskResponseDto[]> {
+    const tasks = await this.tasksRepository.find({
       order: {
         createdAt: 'DESC',
       },
     });
+
+    // Enrich tasks with creator usernames
+    const enrichedTasks = await Promise.all(
+      tasks.map(async (task) => {
+        const createdByUsername = await this.authClientService.getUsernameById(
+          task.createdBy,
+        );
+        return { ...task, createdByUsername } as TaskResponseDto;
+      }),
+    );
+
+    return enrichedTasks;
   }
 
-  async findOne(id: number): Promise<Task> {
+  async findOne(id: number): Promise<TaskResponseDto> {
     const task = await this.tasksRepository.findOne({ where: { id } });
 
     if (!task) {
       throw new NotFoundException(`Tarefa com ID ${id} não encontrada`);
     }
 
-    return task;
+    const createdByUsername = await this.authClientService.getUsernameById(
+      task.createdBy,
+    );
+
+    return { ...task, createdByUsername } as TaskResponseDto;
   }
 
   async update(
