@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import * as z from 'zod'
 
-import { tasksApi } from '@/lib/api'
+import { authApi, tasksApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -42,6 +42,7 @@ const createTaskSchema = z.object({
   status: z.enum(['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE']),
   priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
   dueDate: z.string().optional(),
+  assignees: z.array(z.number()).optional(),
 })
 
 type CreateTaskFormData = z.infer<typeof createTaskSchema>
@@ -82,6 +83,7 @@ function TasksPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [selectedAssignees, setSelectedAssignees] = useState<Array<number>>([])
 
   const {
     register,
@@ -115,6 +117,12 @@ function TasksPage() {
     },
   })
 
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => authApi.getAllUsers(),
+    enabled: isAuthenticated && !!token,
+  })
+
   const createTaskMutation = useMutation({
     mutationFn: (data: CreateTaskFormData) => tasksApi.createTask(data),
     onSuccess: () => {
@@ -122,6 +130,7 @@ function TasksPage() {
       toast.success('Tarefa criada com sucesso!')
       setIsCreateDialogOpen(false)
       reset()
+      setSelectedAssignees([])
     },
     onError: (error: any) => {
       const message =
@@ -182,7 +191,21 @@ function TasksPage() {
   }
 
   const onSubmit = (data: CreateTaskFormData) => {
-    createTaskMutation.mutate(data)
+    const assigneesAsNumbers = selectedAssignees.map((a) =>
+      typeof a === 'string' ? parseInt(a, 10) : Number(a),
+    )
+    createTaskMutation.mutate({
+      ...data,
+      assignees: assigneesAsNumbers,
+    })
+  }
+
+  const toggleAssignee = (userId: number) => {
+    setSelectedAssignees((prev) =>
+      prev.includes(userId)
+        ? prev.filter((assigneeId) => assigneeId !== userId)
+        : [...prev, userId],
+    )
   }
 
   return (
@@ -463,7 +486,9 @@ function TasksPage() {
                   <Label htmlFor="priority">Prioridade</Label>
                   <Select
                     value={watch('priority')}
-                    onValueChange={(value) => setValue('priority', value as any)}
+                    onValueChange={(value) =>
+                      setValue('priority', value as any)
+                    }
                   >
                     <SelectTrigger id="priority">
                       <SelectValue placeholder="Selecione a prioridade" />
@@ -481,6 +506,42 @@ function TasksPage() {
               <div className="space-y-2">
                 <Label htmlFor="dueDate">Prazo</Label>
                 <Input id="dueDate" type="date" {...register('dueDate')} />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Atribuir para</Label>
+                <div className="border rounded-md p-3 max-h-[200px] overflow-y-auto">
+                  {allUsers.length > 0 ? (
+                    <div className="space-y-2">
+                      {allUsers.map((u) => (
+                        <div key={u.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`create-assignee-${u.id}`}
+                            checked={selectedAssignees.includes(u.id)}
+                            onChange={() => toggleAssignee(u.id)}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <label
+                            htmlFor={`create-assignee-${u.id}`}
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {u.username}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      Carregando usuários...
+                    </p>
+                  )}
+                </div>
+                {selectedAssignees.length > 0 && (
+                  <p className="text-xs text-slate-500">
+                    {selectedAssignees.length} usuário(s) selecionado(s)
+                  </p>
+                )}
               </div>
 
               <DialogFooter>

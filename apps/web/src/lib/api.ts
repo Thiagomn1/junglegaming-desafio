@@ -62,9 +62,18 @@ export const authApi = {
     const response = await api.get('/auth/profile')
     return response.data
   },
+  getAllUsers: async (): Promise<Array<{ id: number; username: string }>> => {
+    const response = await api.get('/auth/users')
+    return response.data
+  },
 }
 
 // Tasks API
+export interface Assignee {
+  id: number
+  username: string
+}
+
 export interface Task {
   id: string
   title: string
@@ -72,7 +81,8 @@ export interface Task {
   status: 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE'
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
   dueDate: string | null
-  assignees?: Array<string>
+  assignees?: Array<number>
+  assigneesDetails?: Array<Assignee>
   createdBy?: number
   createdByUsername?: string
   createdAt: string
@@ -86,6 +96,16 @@ export interface Comment {
   authorName?: string
   taskId: number
   createdAt: string
+}
+
+export interface TaskHistoryEntry {
+  id: number
+  taskId: number
+  action: 'created' | 'updated' | 'commented' | 'deleted'
+  userId: number | null
+  username?: string | null
+  metadata: Record<string, unknown> | null
+  timestamp: string
 }
 
 export const tasksApi = {
@@ -106,6 +126,7 @@ export const tasksApi = {
     status?: string
     priority?: string
     dueDate?: string
+    assignees?: Array<number>
   }): Promise<Task> => {
     const response = await api.post('/tasks', data)
     return response.data
@@ -118,6 +139,7 @@ export const tasksApi = {
       status: string
       priority: string
       dueDate: string
+      assignees: Array<number>
     }>,
   ): Promise<Task> => {
     const response = await api.patch(`/tasks/${id}`, data)
@@ -135,6 +157,10 @@ export const tasksApi = {
     data: { text: string },
   ): Promise<Comment> => {
     const response = await api.post(`/tasks/${taskId}/comments`, data)
+    return response.data
+  },
+  getHistory: async (taskId: string): Promise<Array<TaskHistoryEntry>> => {
+    const response = await api.get(`/tasks/${taskId}/history`)
     return response.data
   },
 }
