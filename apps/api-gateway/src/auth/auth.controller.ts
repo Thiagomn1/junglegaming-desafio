@@ -111,4 +111,29 @@ export class AuthController {
       throw error;
     }
   }
+
+  @Get('users')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar todos os usuários (para atribuição de tarefas)',
+  })
+  @ApiResponse({ status: 200, description: 'Lista de usuários' })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  async getAllUsers(@Request() req: any) {
+    try {
+      const token = req.headers.authorization;
+      const { data } = await firstValueFrom(
+        this.httpService.get(`${this.authServiceUrl}/auth/users`, {
+          headers: { Authorization: token },
+        }),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
+  }
 }

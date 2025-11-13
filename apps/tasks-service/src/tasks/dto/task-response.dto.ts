@@ -1,6 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TaskPriority, TaskStatus } from '@jungle/types';
 
+export class AssigneeDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 'john_doe' })
+  username: string;
+}
+
 export class TaskResponseDto {
   @ApiProperty({ example: 1 })
   id: number;
@@ -22,6 +30,13 @@ export class TaskResponseDto {
 
   @ApiProperty({ example: [1, 2], type: [Number] })
   assignees: number[];
+
+  @ApiProperty({
+    example: [{ id: 1, username: 'john_doe' }, { id: 2, username: 'jane_doe' }],
+    type: [AssigneeDto],
+    description: 'Lista de usuários atribuídos com seus usernames'
+  })
+  assigneesDetails?: AssigneeDto[];
 
   @ApiProperty({ example: 5 })
   createdBy: number;

@@ -66,7 +66,23 @@ export class TasksService {
         const createdByUsername = await this.authClientService.getUsernameById(
           task.createdBy,
         );
-        return { ...task, createdByUsername } as TaskResponseDto;
+
+        // Enriquecer assignees com usernames
+        const assigneesDetails = await Promise.all(
+          (task.assignees || []).map(async (assigneeId) => {
+            const username = await this.authClientService.getUsernameById(assigneeId);
+            return {
+              id: assigneeId,
+              username: username || `Usuário #${assigneeId}`,
+            };
+          }),
+        );
+
+        return {
+          ...task,
+          createdByUsername,
+          assigneesDetails,
+        } as TaskResponseDto;
       }),
     );
 
@@ -84,7 +100,22 @@ export class TasksService {
       task.createdBy,
     );
 
-    return { ...task, createdByUsername } as TaskResponseDto;
+    // Enriquecer assignees com usernames
+    const assigneesDetails = await Promise.all(
+      (task.assignees || []).map(async (assigneeId) => {
+        const username = await this.authClientService.getUsernameById(assigneeId);
+        return {
+          id: assigneeId,
+          username: username || `Usuário #${assigneeId}`,
+        };
+      }),
+    );
+
+    return {
+      ...task,
+      createdByUsername,
+      assigneesDetails,
+    } as TaskResponseDto;
   }
 
   async update(

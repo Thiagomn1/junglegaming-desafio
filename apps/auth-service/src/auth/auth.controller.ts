@@ -102,4 +102,29 @@ export class AuthController {
       email: user.email,
     };
   }
+
+  @Get('users')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Listar todos os usuários (para atribuição de tarefas)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de usuários',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number', example: 1 },
+          username: { type: 'string', example: 'john_doe' },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  async getAllUsers() {
+    return await this.authService.getAllUsers();
+  }
 }

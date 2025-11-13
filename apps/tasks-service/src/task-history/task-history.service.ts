@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TaskHistory } from './task-history.entity';
 import { TaskHistoryAction } from '@jungle/types';
+import { TaskHistoryResponseDto } from './dto';
+import { AuthClientService } from '../auth-client/auth-client.service';
 
 @Injectable()
 export class TaskHistoryService {
@@ -11,6 +13,7 @@ export class TaskHistoryService {
   constructor(
     @InjectRepository(TaskHistory)
     private taskHistoryRepository: Repository<TaskHistory>,
+    private authClientService: AuthClientService,
   ) {}
 
   async createHistoryEntry(
@@ -34,10 +37,27 @@ export class TaskHistoryService {
     return saved;
   }
 
-  async findByTaskId(taskId: number): Promise<TaskHistory[]> {
-    return this.taskHistoryRepository.find({
+  async findByTaskId(taskId: number): Promise<TaskHistoryResponseDto[]> {
+    const history = await this.taskHistoryRepository.find({
       where: { taskId },
       order: { timestamp: 'DESC' },
     });
+
+    const enrichedHistory = await Promise.all(
+      history.map(async (entry) => {
+        let username: string | null | undefined = null;
+
+        if (entry.userId) {
+          username = await this.authClientService.getUsernameById(entry.userId);
+        }
+
+        return {
+          ...entry,
+          username,
+        } as TaskHistoryResponseDto;
+      }),
+    );
+
+    return enrichedHistory;
   }
 }

@@ -212,4 +212,29 @@ export class TasksController {
       throw error;
     }
   }
+
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Obter histórico de alterações de uma tarefa' })
+  @ApiResponse({
+    status: 200,
+    description: 'Histórico retornado com sucesso',
+  })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
+  async getHistory(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    try {
+      const token = req.headers.authorization;
+      const { data } = await firstValueFrom(
+        this.httpService.get(`${this.tasksServiceUrl}/tasks/${id}/history`, {
+          headers: { Authorization: token },
+        }),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
+  }
 }

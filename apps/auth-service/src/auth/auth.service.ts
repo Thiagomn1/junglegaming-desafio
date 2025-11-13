@@ -71,6 +71,18 @@ export class AuthService {
     return new UserResponseDto(user);
   }
 
+  async getAllUsers(): Promise<Array<{ id: number; username: string }>> {
+    const users = await this.usersRepository.find({
+      select: ['id', 'username'],
+      order: { username: 'ASC' },
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      username: user.username,
+    }));
+  }
+
   private async generateTokens(user: User): Promise<AuthResponseDto> {
     const payload = {
       sub: user.id,

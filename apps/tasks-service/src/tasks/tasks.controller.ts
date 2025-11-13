@@ -19,13 +19,18 @@ import {
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from './dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { TaskHistoryService } from '../task-history/task-history.service';
+import { TaskHistoryResponseDto } from '../task-history/dto';
 
 @ApiTags('tasks')
 @Controller('tasks')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class TasksController {
-  constructor(private readonly tasksService: TasksService) {}
+  constructor(
+    private readonly tasksService: TasksService,
+    private readonly taskHistoryService: TaskHistoryService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Criar uma nova tarefa' })
@@ -66,16 +71,33 @@ export class TasksController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateTaskDto: UpdateTaskDto,
+    @Request() req: any,
   ) {
-    return this.tasksService.update(id, updateTaskDto);
+    const userId = req.user.id;
+    return this.tasksService.update(id, updateTaskDto, userId);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Deletar uma tarefa' })
   @ApiResponse({ status: 200, description: 'Tarefa deletada com sucesso' })
   @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
-  async remove(@Param('id', ParseIntPipe) id: number) {
-    await this.tasksService.remove(id);
+  async remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    const userId = req.user.id;
+    await this.tasksService.remove(id, userId);
     return { message: 'Tarefa deletada com sucesso' };
+  }
+
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Obter histórico de alterações de uma tarefa' })
+  @ApiResponse({
+    status: 200,
+    description: 'Histórico retornado com sucesso',
+    type: [TaskHistoryResponseDto],
+  })
+  @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
+  async getHistory(@Param('id', ParseIntPipe) id: number) {
+    // Verifica se a tarefa existe
+    await this.tasksService.findOne(id);
+    return this.taskHistoryService.findByTaskId(id);
   }
 }
