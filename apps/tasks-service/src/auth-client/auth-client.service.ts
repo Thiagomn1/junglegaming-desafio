@@ -20,7 +20,6 @@ export class AuthClientService {
   }
 
   async getUsernameById(userId: number): Promise<string | undefined> {
-    // Check cache first
     if (this.usernameCache.has(userId)) {
       return this.usernameCache.get(userId);
     }
@@ -30,7 +29,6 @@ export class AuthClientService {
       const username = response.data?.username;
 
       if (username) {
-        // Cache for 5 minutes
         this.usernameCache.set(userId, username);
         setTimeout(() => this.usernameCache.delete(userId), 5 * 60 * 1000);
       }
@@ -54,13 +52,11 @@ export class AuthClientService {
       if (item.createdBy) userIds.add(item.createdBy);
     });
 
-    // Fetch all usernames in parallel
     const usernamePromises = Array.from(userIds).map((id) =>
       this.getUsernameById(id),
     );
     await Promise.all(usernamePromises);
 
-    // Enrich items with usernames
     return items.map((item) => ({
       ...item,
       ...(item.authorId && {

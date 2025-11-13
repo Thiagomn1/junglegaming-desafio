@@ -1,20 +1,50 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
-import { Calendar, Filter, Search } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Calendar, Filter, Plus, Search } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import * as z from 'zod'
 
 import { tasksApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Textarea } from '@/components/ui/textarea'
 
 export const Route = createFileRoute('/tasks')({
   component: TasksPage,
 })
+
+const createTaskSchema = z.object({
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional(),
+  status: z.enum(['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+  dueDate: z.string().optional(),
+})
+
+type CreateTaskFormData = z.infer<typeof createTaskSchema>
 
 const statusLabels = {
   TODO: 'A Fazer',
@@ -46,10 +76,27 @@ const priorityColors = {
 
 function TasksPage() {
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { isAuthenticated, token } = useAuthStore()
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [priorityFilter, setPriorityFilter] = useState<string>('')
   const [searchQuery, setSearchQuery] = useState<string>('')
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+    watch,
+  } = useForm<CreateTaskFormData>({
+    resolver: zodResolver(createTaskSchema),
+    defaultValues: {
+      status: 'TODO',
+      priority: 'MEDIUM',
+    },
+  })
 
   const {
     data: allTasks = [],
@@ -65,6 +112,22 @@ function TasksPage() {
     retry: (failureCount, err) => {
       if ((err as any).response?.status === 429) return false
       return failureCount < 1
+    },
+  })
+
+  const createTaskMutation = useMutation({
+    mutationFn: (data: CreateTaskFormData) => tasksApi.createTask(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Tarefa criada com sucesso!')
+      setIsCreateDialogOpen(false)
+      reset()
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message ||
+        'Erro ao criar tarefa. Tente novamente.'
+      toast.error(message)
     },
   })
 
@@ -118,6 +181,10 @@ function TasksPage() {
     setSearchQuery('')
   }
 
+  const onSubmit = (data: CreateTaskFormData) => {
+    createTaskMutation.mutate(data)
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -130,7 +197,13 @@ function TasksPage() {
               Gerencie e organize suas tarefas
             </p>
           </div>
-          <Button>Nova Tarefa</Button>
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="cursor-pointer"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Tarefa
+          </Button>
         </div>
 
         {/* Filters */}
@@ -334,6 +407,101 @@ function TasksPage() {
             ))}
           </div>
         )}
+
+        {/* Create Task Dialog */}
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Nova Tarefa</DialogTitle>
+              <DialogDescription>
+                Crie uma nova tarefa para organizar seu trabalho
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Título</Label>
+                <Input
+                  id="title"
+                  {...register('title')}
+                  placeholder="Ex: Implementar autenticação"
+                />
+                {errors.title && (
+                  <p className="text-sm text-red-600">{errors.title.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Descrição</Label>
+                <Textarea
+                  id="description"
+                  {...register('description')}
+                  placeholder="Descreva os detalhes da tarefa..."
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={watch('status')}
+                    onValueChange={(value) => setValue('status', value as any)}
+                  >
+                    <SelectTrigger id="status">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TODO">A Fazer</SelectItem>
+                      <SelectItem value="IN_PROGRESS">Em Progresso</SelectItem>
+                      <SelectItem value="REVIEW">Em Revisão</SelectItem>
+                      <SelectItem value="DONE">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="priority">Prioridade</Label>
+                  <Select
+                    value={watch('priority')}
+                    onValueChange={(value) => setValue('priority', value as any)}
+                  >
+                    <SelectTrigger id="priority">
+                      <SelectValue placeholder="Selecione a prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LOW">Baixa</SelectItem>
+                      <SelectItem value="MEDIUM">Média</SelectItem>
+                      <SelectItem value="HIGH">Alta</SelectItem>
+                      <SelectItem value="URGENT">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dueDate">Prazo</Label>
+                <Input id="dueDate" type="date" {...register('dueDate')} />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsCreateDialogOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createTaskMutation.isPending}
+                  className="cursor-pointer"
+                >
+                  {createTaskMutation.isPending ? 'Criando...' : 'Criar Tarefa'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

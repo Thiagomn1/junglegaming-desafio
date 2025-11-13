@@ -61,7 +61,6 @@ export class TasksService {
       },
     });
 
-    // Enrich tasks with creator usernames
     const enrichedTasks = await Promise.all(
       tasks.map(async (task) => {
         const createdByUsername = await this.authClientService.getUsernameById(

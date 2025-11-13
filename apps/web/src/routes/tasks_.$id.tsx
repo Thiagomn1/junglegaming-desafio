@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ArrowLeft, Calendar, Clock, User } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, Edit, Trash2, User } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
@@ -10,10 +10,36 @@ import * as z from 'zod'
 import type { Comment } from '@/lib/api'
 import { tasksApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -25,7 +51,16 @@ const commentSchema = z.object({
   text: z.string().min(1, 'Comentário não pode estar vazio'),
 })
 
+const editTaskSchema = z.object({
+  title: z.string().min(1, 'Título é obrigatório'),
+  description: z.string().optional(),
+  status: z.enum(['TODO', 'IN_PROGRESS', 'REVIEW', 'DONE']),
+  priority: z.enum(['LOW', 'MEDIUM', 'HIGH', 'URGENT']),
+  dueDate: z.string().optional(),
+})
+
 type CommentFormData = z.infer<typeof commentSchema>
+type EditTaskFormData = z.infer<typeof editTaskSchema>
 
 const STATUS_LABELS: Record<string, string> = {
   TODO: 'A Fazer',
@@ -59,7 +94,9 @@ function TaskDetailPage() {
   const { id } = Route.useParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { isAuthenticated, token } = useAuthStore()
+  const { isAuthenticated, token, user } = useAuthStore()
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   const {
     register,
@@ -68,6 +105,17 @@ function TaskDetailPage() {
     reset,
   } = useForm<CommentFormData>({
     resolver: zodResolver(commentSchema),
+  })
+
+  const {
+    register: registerEdit,
+    handleSubmit: handleSubmitEdit,
+    formState: { errors: errorsEdit },
+    reset: resetEdit,
+    setValue: setValueEdit,
+    watch: watchEdit,
+  } = useForm<EditTaskFormData>({
+    resolver: zodResolver(editTaskSchema),
   })
 
   const {
@@ -105,6 +153,38 @@ function TaskDetailPage() {
     },
   })
 
+  const updateTaskMutation = useMutation({
+    mutationFn: (data: EditTaskFormData) => tasksApi.updateTask(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['task', id] })
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Tarefa atualizada com sucesso!')
+      setIsEditDialogOpen(false)
+      resetEdit()
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message ||
+        'Erro ao atualizar tarefa. Tente novamente.'
+      toast.error(message)
+    },
+  })
+
+  const deleteTaskMutation = useMutation({
+    mutationFn: () => tasksApi.deleteTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] })
+      toast.success('Tarefa removida com sucesso!')
+      navigate({ to: '/tasks' })
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message ||
+        'Erro ao remover tarefa. Tente novamente.'
+      toast.error(message)
+    },
+  })
+
   useEffect(() => {
     if (!isAuthenticated) {
       navigate({ to: '/' })
@@ -119,9 +199,29 @@ function TaskDetailPage() {
     }
   }, [taskError])
 
+  useEffect(() => {
+    if (task && isEditDialogOpen) {
+      setValueEdit('title', task.title)
+      setValueEdit('description', task.description || '')
+      setValueEdit('status', task.status)
+      setValueEdit('priority', task.priority)
+      setValueEdit('dueDate', task.dueDate || '')
+    }
+  }, [task, isEditDialogOpen, setValueEdit])
+
   const onSubmit = (data: CommentFormData) => {
     createCommentMutation.mutate(data)
   }
+
+  const onSubmitEdit = (data: EditTaskFormData) => {
+    updateTaskMutation.mutate(data)
+  }
+
+  const handleDelete = () => {
+    deleteTaskMutation.mutate()
+  }
+
+  const isOwner = user && task && Number(user.id) === task.createdBy
 
   if (isLoadingTask) {
     return (
@@ -182,6 +282,28 @@ function TaskDetailPage() {
                   </Badge>
                 </div>
               </div>
+              {isOwner && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditDialogOpen(true)}
+                    className="cursor-pointer"
+                  >
+                    <Edit className="h-4 w-4 mr-2" />
+                    Editar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsDeleteDialogOpen(true)}
+                    className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Remover
+                  </Button>
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -293,6 +415,143 @@ function TaskDetailPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[525px]">
+            <DialogHeader>
+              <DialogTitle>Editar Tarefa</DialogTitle>
+              <DialogDescription>
+                Faça as alterações necessárias na tarefa
+              </DialogDescription>
+            </DialogHeader>
+            <form
+              onSubmit={handleSubmitEdit(onSubmitEdit)}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Título</Label>
+                <Input
+                  id="edit-title"
+                  {...registerEdit('title')}
+                  placeholder="Título da tarefa"
+                />
+                {errorsEdit.title && (
+                  <p className="text-sm text-red-600">
+                    {errorsEdit.title.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Descrição</Label>
+                <Textarea
+                  id="edit-description"
+                  {...registerEdit('description')}
+                  placeholder="Descrição da tarefa"
+                  rows={4}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select
+                    value={watchEdit('status')}
+                    onValueChange={(value) =>
+                      setValueEdit('status', value as any)
+                    }
+                  >
+                    <SelectTrigger id="edit-status">
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TODO">A Fazer</SelectItem>
+                      <SelectItem value="IN_PROGRESS">Em Progresso</SelectItem>
+                      <SelectItem value="REVIEW">Em Revisão</SelectItem>
+                      <SelectItem value="DONE">Concluído</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-priority">Prioridade</Label>
+                  <Select
+                    value={watchEdit('priority')}
+                    onValueChange={(value) =>
+                      setValueEdit('priority', value as any)
+                    }
+                  >
+                    <SelectTrigger id="edit-priority">
+                      <SelectValue placeholder="Selecione a prioridade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="LOW">Baixa</SelectItem>
+                      <SelectItem value="MEDIUM">Média</SelectItem>
+                      <SelectItem value="HIGH">Alta</SelectItem>
+                      <SelectItem value="URGENT">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-dueDate">Prazo</Label>
+                <Input
+                  id="edit-dueDate"
+                  type="date"
+                  {...registerEdit('dueDate')}
+                />
+              </div>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsEditDialogOpen(false)}
+                  className="cursor-pointer"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={updateTaskMutation.isPending}
+                  className="cursor-pointer"
+                >
+                  {updateTaskMutation.isPending ? 'Salvando...' : 'Salvar'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Esta ação não pode ser desfeita. A tarefa será permanentemente
+                removida do sistema.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="cursor-pointer">
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 cursor-pointer"
+                disabled={deleteTaskMutation.isPending}
+              >
+                {deleteTaskMutation.isPending ? 'Removendo...' : 'Remover'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   )
