@@ -43,13 +43,11 @@ export class NotificationsGateway
       const payload: JwtPayload = this.jwtService.verify(token);
       const userId = payload.id;
 
-      // Armazena o socket do usuário
       if (!this.userSockets.has(userId)) {
         this.userSockets.set(userId, new Set());
       }
       this.userSockets.get(userId).add(client.id);
 
-      // Adiciona informações do usuário ao socket
       client.data.userId = userId;
       client.data.username = payload.username;
 
@@ -59,7 +57,6 @@ export class NotificationsGateway
         `Cliente conectado: ${client.id} (Usuário: ${payload.username}, ID: ${userId})`
       );
 
-      // Envia confirmação de conexão
       client.emit("connected", {
         message: "Conectado ao servidor de notificações",
         userId,
@@ -100,7 +97,6 @@ export class NotificationsGateway
     return null;
   }
 
-  // Método para enviar notificação para um usuário específico
   sendNotificationToUser(userId: number, notification: WebSocketNotification) {
     const room = `user:${userId}`;
     this.logger.log(
@@ -109,14 +105,12 @@ export class NotificationsGateway
     this.server.to(room).emit("notification", notification);
   }
 
-  // Método para verificar se um usuário está conectado
   isUserConnected(userId: number): boolean {
     return (
       this.userSockets.has(userId) && this.userSockets.get(userId).size > 0
     );
   }
 
-  // Método para obter total de usuários conectados
   getConnectedUsersCount(): number {
     return this.userSockets.size;
   }

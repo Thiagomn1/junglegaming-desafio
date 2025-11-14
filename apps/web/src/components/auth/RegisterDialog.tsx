@@ -51,7 +51,6 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
     resolver: zodResolver(registerSchema),
   })
 
-  // Register mutation
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterFormData) => {
       const response = await authApi.register({
@@ -60,16 +59,13 @@ export function RegisterDialog({ open, onOpenChange }: RegisterDialogProps) {
         password: data.password,
       })
 
-      // Temporarily set token to make profile request work
       setAuth(response.accessToken, null as any)
 
-      // Fetch user profile
       const profile = await authApi.getProfile()
 
       return { accessToken: response.accessToken, profile }
     },
     onSuccess: ({ accessToken, profile }) => {
-      // Set auth with user data
       setAuth(accessToken, {
         id: profile.id,
         email: profile.email,

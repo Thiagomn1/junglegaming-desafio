@@ -170,7 +170,6 @@ function TaskDetailPage() {
       setValueEdit('status', task.status)
       setValueEdit('priority', task.priority)
       setValueEdit('dueDate', task.dueDate || '')
-      // Ensure assignees are numbers
       const assigneesAsNumbers = (task.assignees || []).map((a) =>
         typeof a === 'string' ? parseInt(a, 10) : Number(a),
       )
@@ -183,7 +182,6 @@ function TaskDetailPage() {
   }
 
   const onSubmitEdit = (data: EditTaskFormData) => {
-    // Ensure assignees are sent as numbers
     const assigneesAsNumbers = selectedAssignees.map((a) =>
       typeof a === 'string' ? parseInt(a, 10) : Number(a),
     )

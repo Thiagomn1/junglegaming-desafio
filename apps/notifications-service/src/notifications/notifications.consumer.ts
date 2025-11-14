@@ -31,7 +31,6 @@ export class NotificationsConsumer implements OnModuleInit {
       this.connection = await connect(rabbitmqUrl);
       this.channel = await this.connection.createChannel();
 
-      // Configurar exchange e filas
       await this.channel.assertExchange("tasks_events", "topic", {
         durable: true,
       });
@@ -39,7 +38,6 @@ export class NotificationsConsumer implements OnModuleInit {
         durable: true,
       });
 
-      // Bind patterns para os eventos de tasks
       await this.channel.bindQueue(queue, "tasks_events", "task.created");
       await this.channel.bindQueue(queue, "tasks_events", "task.updated");
       await this.channel.bindQueue(queue, "tasks_events", "task.deleted");
@@ -52,7 +50,6 @@ export class NotificationsConsumer implements OnModuleInit {
       this.logger.log("Conectado ao RabbitMQ e filas configuradas");
     } catch (error: any) {
       this.logger.error(`Falha ao conectar ao RabbitMQ: ${error.message}`);
-      // Retry connection after 5 seconds
       setTimeout(() => this.connect(), 5000);
     }
   }
@@ -77,7 +74,6 @@ export class NotificationsConsumer implements OnModuleInit {
               this.channel.ack(msg);
             } catch (error: any) {
               this.logger.error(`Erro ao processar mensagem: ${error.message}`);
-              // Rejeita a mensagem e não recoloca na fila
               this.channel.nack(msg, false, false);
             }
           }
@@ -100,7 +96,6 @@ export class NotificationsConsumer implements OnModuleInit {
       case "task.created":
         notificationType = NotificationType.TASK_CREATED;
         message = `Nova tarefa criada: ${eventData.title}`;
-        // Notificar o criador
         if (eventData.createdBy) {
           affectedUsers.push(eventData.createdBy);
         }
@@ -110,12 +105,10 @@ export class NotificationsConsumer implements OnModuleInit {
         notificationType = NotificationType.TASK_UPDATED;
         message = `Tarefa atualizada`;
 
-        // Notificar o autor da tarefa (campo updatedBy no evento)
         if (eventData.updatedBy) {
           affectedUsers.push(eventData.updatedBy);
         }
 
-        // Se mudou o status, usar tipo específico
         if (eventData.changes && eventData.changes.status) {
           notificationType = NotificationType.TASK_STATUS_CHANGED;
           message = `Status da tarefa alterado para: ${eventData.changes.status}`;
@@ -134,12 +127,10 @@ export class NotificationsConsumer implements OnModuleInit {
         notificationType = NotificationType.COMMENT_CREATED;
         message = `Novo comentário em: ${eventData.taskTitle || "tarefa"}`;
 
-        // Notificar o dono da tarefa
         if (eventData.taskAuthorId) {
           affectedUsers.push(eventData.taskAuthorId);
         }
 
-        // Não notificar quem comentou
         if (eventData.authorId && affectedUsers.includes(eventData.authorId)) {
           affectedUsers = affectedUsers.filter(
             (id) => id !== eventData.authorId
@@ -152,7 +143,6 @@ export class NotificationsConsumer implements OnModuleInit {
         return;
     }
 
-    // Criar notificações para cada usuário afetado
     for (const userId of affectedUsers) {
       try {
         const notificationPayload: NotificationPayload = {
@@ -163,13 +153,11 @@ export class NotificationsConsumer implements OnModuleInit {
           metadata: eventData,
         };
 
-        // Persistir notificação
         const notification =
           await this.notificationsService.createNotification(
             notificationPayload
           );
 
-        // Enviar via WebSocket se o usuário estiver conectado
         if (this.websocketGateway.isUserConnected(userId)) {
           const wsNotification: WebSocketNotification = {
             type: notificationType,

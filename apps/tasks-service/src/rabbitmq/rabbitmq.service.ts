@@ -36,7 +36,6 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('✅ Conectado ao RabbitMQ');
     } catch (error) {
       this.logger.error('❌ Erro ao conectar ao RabbitMQ:', error);
-      // Retry em 5 segundos
       setTimeout(() => {
         void this.connect();
       }, 5000);

@@ -9,7 +9,6 @@ export const api = axios.create({
   },
 })
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().token
@@ -32,12 +31,10 @@ api.interceptors.request.use(
   },
 )
 
-// Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid - clear auth
       useAuthStore.getState().clearAuth()
     }
     return Promise.reject(error)

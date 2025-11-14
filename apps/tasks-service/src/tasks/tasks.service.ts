@@ -67,10 +67,10 @@ export class TasksService {
           task.createdBy,
         );
 
-        // Enriquecer assignees com usernames
         const assigneesDetails = await Promise.all(
           (task.assignees || []).map(async (assigneeId) => {
-            const username = await this.authClientService.getUsernameById(assigneeId);
+            const username =
+              await this.authClientService.getUsernameById(assigneeId);
             return {
               id: assigneeId,
               username: username || `Usuário #${assigneeId}`,
@@ -100,10 +100,10 @@ export class TasksService {
       task.createdBy,
     );
 
-    // Enriquecer assignees com usernames
     const assigneesDetails = await Promise.all(
       (task.assignees || []).map(async (assigneeId) => {
-        const username = await this.authClientService.getUsernameById(assigneeId);
+        const username =
+          await this.authClientService.getUsernameById(assigneeId);
         return {
           id: assigneeId,
           username: username || `Usuário #${assigneeId}`,

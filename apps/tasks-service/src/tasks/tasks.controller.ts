@@ -96,7 +96,6 @@ export class TasksController {
   })
   @ApiResponse({ status: 404, description: 'Tarefa não encontrada' })
   async getHistory(@Param('id', ParseIntPipe) id: number) {
-    // Verifica se a tarefa existe
     await this.tasksService.findOne(id);
     return this.taskHistoryService.findByTaskId(id);
   }
