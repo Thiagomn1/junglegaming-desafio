@@ -11,6 +11,7 @@ import {
   ParseIntPipe,
   HttpException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
@@ -28,10 +29,17 @@ import { CreateTaskDto, UpdateTaskDto, CreateCommentDto } from './dto';
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class TasksController {
-  private readonly tasksServiceUrl =
-    process.env.TASKS_SERVICE_URL || 'http://tasks-service:5000';
+  private readonly tasksServiceUrl: string;
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.tasksServiceUrl = this.configService.get<string>(
+      'TASKS_SERVICE_URL',
+      'http://tasks-service:5000',
+    );
+  }
 
   @Post()
   @ApiOperation({ summary: 'Criar uma nova tarefa' })

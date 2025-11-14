@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { connect, Connection, Channel, ConsumeMessage } from "amqplib";
 import { NotificationsService } from "./notifications.service";
 import { NotificationsGateway } from "../websocket/websocket.gateway";
@@ -16,7 +17,8 @@ export class NotificationsConsumer implements OnModuleInit {
 
   constructor(
     private readonly notificationsService: NotificationsService,
-    private readonly websocketGateway: NotificationsGateway
+    private readonly websocketGateway: NotificationsGateway,
+    private readonly configService: ConfigService
   ) {}
 
   async onModuleInit() {
@@ -25,7 +27,10 @@ export class NotificationsConsumer implements OnModuleInit {
   }
 
   private async connect() {
-    const rabbitmqUrl = process.env.RABBITMQ_URL || "amqp://rabbitmq:5672";
+    const rabbitmqUrl = this.configService.get<string>(
+      'RABBITMQ_URL',
+      'amqp://admin:admin@rabbitmq:5672',
+    );
 
     try {
       this.connection = await connect(rabbitmqUrl);

@@ -7,6 +7,7 @@ import {
   Request,
   HttpException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
@@ -22,10 +23,17 @@ import { RegisterDto, LoginDto, RefreshDto } from './dto';
 @ApiTags('auth')
 @Controller('api/auth')
 export class AuthController {
-  private readonly authServiceUrl =
-    process.env.AUTH_SERVICE_URL || 'http://auth-service:4000';
+  private readonly authServiceUrl: string;
 
-  constructor(private readonly httpService: HttpService) {}
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.authServiceUrl = this.configService.get<string>(
+      'AUTH_SERVICE_URL',
+      'http://auth-service:4000',
+    );
+  }
 
   @Post('register')
   @ApiOperation({ summary: 'Registrar um novo usuário' })

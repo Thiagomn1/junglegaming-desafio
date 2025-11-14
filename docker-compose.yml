@@ -44,8 +44,11 @@ services:
     build:
       context: .
       dockerfile: ./apps/auth-service/Dockerfile
-    ports:
-      - "4000:4000"
+    # Porta NÃO exposta publicamente - apenas acessível via rede interna do Docker
+    # Para acesso externo, use o API Gateway na porta 3001
+    # Para debugging local, descomente a linha abaixo:
+    # ports:
+    #   - "4000:4000"
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - DB_HOST=db
@@ -62,8 +65,11 @@ services:
     build:
       context: .
       dockerfile: ./apps/tasks-service/Dockerfile
-    ports:
-      - "5000:5000"
+    # Porta NÃO exposta publicamente - apenas acessível via rede interna do Docker
+    # Para acesso externo, use o API Gateway na porta 3001
+    # Para debugging local, descomente a linha abaixo:
+    # ports:
+    #   - "5000:5000"
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - DB_HOST=db
@@ -84,8 +90,11 @@ services:
     build:
       context: .
       dockerfile: ./apps/notifications-service/Dockerfile
-    ports:
-      - "6000:6000"
+    # Porta NÃO exposta publicamente - apenas acessível via rede interna do Docker
+    # Para acesso externo, use o API Gateway na porta 3001
+    # Para debugging local, descomente a linha abaixo:
+    # ports:
+    #   - "6000:6000"
     environment:
       - NODE_ENV=${NODE_ENV:-development}
       - PORT=6000

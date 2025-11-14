@@ -8,6 +8,7 @@ import {
   Request,
   HttpException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,9 +22,14 @@ import { AxiosError } from 'axios';
 export class NotificationsController {
   private readonly notificationsServiceUrl: string;
 
-  constructor(private readonly httpService: HttpService) {
-    this.notificationsServiceUrl =
-      process.env.NOTIFICATIONS_SERVICE_URL || 'http://localhost:6000';
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {
+    this.notificationsServiceUrl = this.configService.get<string>(
+      'NOTIFICATIONS_SERVICE_URL',
+      'http://notifications-service:6000',
+    );
   }
 
   @Get()
