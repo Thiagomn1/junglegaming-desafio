@@ -19,7 +19,7 @@ export class TaskHistoryResponseDto {
 
   @ApiProperty({
     example: { changes: { status: 'DONE' } },
-    nullable: true
+    nullable: true,
   })
   metadata: Record<string, unknown> | null;
 

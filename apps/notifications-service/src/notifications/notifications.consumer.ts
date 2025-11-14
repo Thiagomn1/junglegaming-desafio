@@ -1,13 +1,13 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { connect, Connection, Channel, ConsumeMessage } from "amqplib";
-import { NotificationsService } from "./notifications.service";
-import { NotificationsGateway } from "../websocket/websocket.gateway";
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { connect, Connection, Channel, ConsumeMessage } from 'amqplib';
+import { NotificationsService } from './notifications.service';
+import { NotificationsGateway } from '../websocket/websocket.gateway';
 import {
   NotificationType,
   NotificationPayload,
   WebSocketNotification,
-} from "@jungle/types";
+} from '@jungle/types';
 
 @Injectable()
 export class NotificationsConsumer implements OnModuleInit {
@@ -18,7 +18,7 @@ export class NotificationsConsumer implements OnModuleInit {
   constructor(
     private readonly notificationsService: NotificationsService,
     private readonly websocketGateway: NotificationsGateway,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
   ) {}
 
   async onModuleInit() {
@@ -36,33 +36,35 @@ export class NotificationsConsumer implements OnModuleInit {
       this.connection = await connect(rabbitmqUrl);
       this.channel = await this.connection.createChannel();
 
-      await this.channel.assertExchange("tasks_events", "topic", {
+      await this.channel.assertExchange('tasks_events', 'topic', {
         durable: true,
       });
-      const { queue } = await this.channel.assertQueue("notifications", {
+      const { queue } = await this.channel.assertQueue('notifications', {
         durable: true,
       });
 
-      await this.channel.bindQueue(queue, "tasks_events", "task.created");
-      await this.channel.bindQueue(queue, "tasks_events", "task.updated");
-      await this.channel.bindQueue(queue, "tasks_events", "task.deleted");
+      await this.channel.bindQueue(queue, 'tasks_events', 'task.created');
+      await this.channel.bindQueue(queue, 'tasks_events', 'task.updated');
+      await this.channel.bindQueue(queue, 'tasks_events', 'task.deleted');
       await this.channel.bindQueue(
         queue,
-        "tasks_events",
-        "task.comment.created"
+        'tasks_events',
+        'task.comment.created',
       );
 
-      this.logger.log("Conectado ao RabbitMQ e filas configuradas");
+      this.logger.log('Conectado ao RabbitMQ e filas configuradas');
     } catch (error: any) {
       this.logger.error(`Falha ao conectar ao RabbitMQ: ${error.message}`);
-      setTimeout(() => this.connect(), 5000);
+      setTimeout(() => {
+        void this.connect();
+      }, 5000);
     }
   }
 
   private async consumeEvents() {
     try {
       await this.channel.consume(
-        "notifications",
+        'notifications',
         async (msg: ConsumeMessage) => {
           if (msg) {
             try {
@@ -71,7 +73,7 @@ export class NotificationsConsumer implements OnModuleInit {
 
               this.logger.log(
                 `Evento recebido: ${routingKey}`,
-                JSON.stringify(content)
+                JSON.stringify(content),
               );
 
               await this.processEvent(routingKey, content);
@@ -83,10 +85,10 @@ export class NotificationsConsumer implements OnModuleInit {
             }
           }
         },
-        { noAck: false }
+        { noAck: false },
       );
 
-      this.logger.log("Iniciando o consumo de eventos da fila de notificações");
+      this.logger.log('Iniciando o consumo de eventos da fila de notificações');
     } catch (error: any) {
       this.logger.error(`Falha ao consumir eventos: ${error.message}`);
     }
@@ -98,7 +100,7 @@ export class NotificationsConsumer implements OnModuleInit {
     let affectedUsers: number[] = [];
 
     switch (routingKey) {
-      case "task.created":
+      case 'task.created':
         notificationType = NotificationType.TASK_CREATED;
         message = `Nova tarefa criada: ${eventData.title}`;
         if (eventData.createdBy) {
@@ -106,7 +108,7 @@ export class NotificationsConsumer implements OnModuleInit {
         }
         break;
 
-      case "task.updated":
+      case 'task.updated':
         notificationType = NotificationType.TASK_UPDATED;
         message = `Tarefa atualizada`;
 
@@ -120,7 +122,7 @@ export class NotificationsConsumer implements OnModuleInit {
         }
         break;
 
-      case "task.deleted":
+      case 'task.deleted':
         notificationType = NotificationType.TASK_DELETED;
         message = `Tarefa deletada: ${eventData.title}`;
         if (eventData.authorId) {
@@ -128,9 +130,9 @@ export class NotificationsConsumer implements OnModuleInit {
         }
         break;
 
-      case "task.comment.created":
+      case 'task.comment.created':
         notificationType = NotificationType.COMMENT_CREATED;
-        message = `Novo comentário em: ${eventData.taskTitle || "tarefa"}`;
+        message = `Novo comentário em: ${eventData.taskTitle || 'tarefa'}`;
 
         if (eventData.taskAuthorId) {
           affectedUsers.push(eventData.taskAuthorId);
@@ -138,7 +140,7 @@ export class NotificationsConsumer implements OnModuleInit {
 
         if (eventData.authorId && affectedUsers.includes(eventData.authorId)) {
           affectedUsers = affectedUsers.filter(
-            (id) => id !== eventData.authorId
+            (id) => id !== eventData.authorId,
           );
         }
         break;
@@ -160,7 +162,7 @@ export class NotificationsConsumer implements OnModuleInit {
 
         const notification =
           await this.notificationsService.createNotification(
-            notificationPayload
+            notificationPayload,
           );
 
         if (this.websocketGateway.isUserConnected(userId)) {
@@ -176,11 +178,11 @@ export class NotificationsConsumer implements OnModuleInit {
         }
 
         this.logger.log(
-          `Notificação criada e enviada para usuário ${userId}: ${notificationType}`
+          `Notificação criada e enviada para usuário ${userId}: ${notificationType}`,
         );
       } catch (error: any) {
         this.logger.error(
-          `Erro ao criar notificação para usuário ${userId}: ${error.message}`
+          `Erro ao criar notificação para usuário ${userId}: ${error.message}`,
         );
       }
     }
@@ -193,6 +195,6 @@ export class NotificationsConsumer implements OnModuleInit {
     if (this.connection) {
       await this.connection.close();
     }
-    this.logger.log("Desconectado do RabbitMQ");
+    this.logger.log('Desconectado do RabbitMQ');
   }
 }

@@ -96,20 +96,19 @@ export class TasksService {
       throw new NotFoundException(`Tarefa com ID ${id} não encontrada`);
     }
 
-    const createdByUsername = await this.authClientService.getUsernameById(
-      task.createdBy,
-    );
-
-    const assigneesDetails = await Promise.all(
-      (task.assignees || []).map(async (assigneeId) => {
-        const username =
-          await this.authClientService.getUsernameById(assigneeId);
-        return {
-          id: assigneeId,
-          username: username || `Usuário #${assigneeId}`,
-        };
-      }),
-    );
+    const [createdByUsername, assigneesDetails] = await Promise.all([
+      this.authClientService.getUsernameById(task.createdBy),
+      Promise.all(
+        (task.assignees || []).map(async (assigneeId) => {
+          const username =
+            await this.authClientService.getUsernameById(assigneeId);
+          return {
+            id: assigneeId,
+            username: username || `Usuário #${assigneeId}`,
+          };
+        }),
+      ),
+    ]);
 
     return {
       ...task,

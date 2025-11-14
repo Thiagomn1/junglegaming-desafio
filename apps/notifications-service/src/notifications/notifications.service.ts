@@ -1,8 +1,8 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { Notification } from "./notification.entity";
-import { NotificationPayload } from "@jungle/types";
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Notification } from './notification.entity';
+import { NotificationPayload } from '@jungle/types';
 
 @Injectable()
 export class NotificationsService {
@@ -10,14 +10,14 @@ export class NotificationsService {
 
   constructor(
     @InjectRepository(Notification)
-    private notificationsRepository: Repository<Notification>
+    private notificationsRepository: Repository<Notification>,
   ) {}
 
   async createNotification(
-    payload: NotificationPayload
+    payload: NotificationPayload,
   ): Promise<Notification> {
     this.logger.log(
-      `Criando notificação: ${payload.type} para usuário ${payload.userId}`
+      `Criando notificação: ${payload.type} para usuário ${payload.userId}`,
     );
 
     const notification = this.notificationsRepository.create({
@@ -35,14 +35,14 @@ export class NotificationsService {
   async findAllByUser(userId: number): Promise<Notification[]> {
     return this.notificationsRepository.find({
       where: { userId },
-      order: { createdAt: "DESC" },
+      order: { createdAt: 'DESC' },
     });
   }
 
   async findUnreadByUser(userId: number): Promise<Notification[]> {
     return this.notificationsRepository.find({
       where: { userId, read: false },
-      order: { createdAt: "DESC" },
+      order: { createdAt: 'DESC' },
     });
   }
 
@@ -52,7 +52,7 @@ export class NotificationsService {
     });
 
     if (!notification) {
-      throw new NotFoundException("Notificação não encontrada");
+      throw new NotFoundException('Notificação não encontrada');
     }
 
     notification.read = true;
@@ -62,7 +62,7 @@ export class NotificationsService {
   async markAllAsRead(userId: number): Promise<void> {
     await this.notificationsRepository.update(
       { userId, read: false },
-      { read: true }
+      { read: true },
     );
   }
 

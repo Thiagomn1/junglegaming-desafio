@@ -5,10 +5,7 @@ import { TaskHistory } from './task-history.entity';
 import { AuthClientModule } from '../auth-client/auth-client.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([TaskHistory]),
-    AuthClientModule,
-  ],
+  imports: [TypeOrmModule.forFeature([TaskHistory]), AuthClientModule],
   providers: [TaskHistoryService],
   exports: [TaskHistoryService],
 })

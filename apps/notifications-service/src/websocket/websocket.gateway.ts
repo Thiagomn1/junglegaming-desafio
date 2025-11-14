@@ -4,18 +4,18 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   OnGatewayInit,
-} from "@nestjs/websockets";
-import { Server, Socket } from "socket.io";
-import { Logger, UnauthorizedException } from "@nestjs/common";
-import { JwtService } from "@nestjs/jwt";
-import { WebSocketNotification, JwtPayload } from "@jungle/types";
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { Logger, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { WebSocketNotification, JwtPayload } from '@jungle/types';
 
 @WebSocketGateway({
   cors: {
-    origin: "*",
+    origin: '*',
     credentials: true,
   },
-  namespace: "/notifications",
+  namespace: '/notifications',
 })
 export class NotificationsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -28,16 +28,16 @@ export class NotificationsGateway
 
   constructor(private readonly jwtService: JwtService) {}
 
-  afterInit(_server: Server) {
-    this.logger.log("WebSocket Gateway iniciado");
+  afterInit() {
+    this.logger.log('WebSocket Gateway iniciado');
   }
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     try {
       const token = this.extractTokenFromHandshake(client);
 
       if (!token) {
-        throw new UnauthorizedException("Token não fornecido");
+        throw new UnauthorizedException('Token não fornecido');
       }
 
       const payload: JwtPayload = this.jwtService.verify(token);
@@ -51,19 +51,19 @@ export class NotificationsGateway
       client.data.userId = userId;
       client.data.username = payload.username;
 
-      client.join(`user:${userId}`);
+      void client.join(`user:${userId}`);
 
       this.logger.log(
-        `Cliente conectado: ${client.id} (Usuário: ${payload.username}, ID: ${userId})`
+        `Cliente conectado: ${client.id} (Usuário: ${payload.username}, ID: ${userId})`,
       );
 
-      client.emit("connected", {
-        message: "Conectado ao servidor de notificações",
+      client.emit('connected', {
+        message: 'Conectado ao servidor de notificações',
         userId,
       });
     } catch (error: any) {
       this.logger.error(`Connection error: ${error.message}`);
-      client.emit("error", { message: "Autenticação falhou" });
+      client.emit('error', { message: 'Autenticação falhou' });
       client.disconnect();
     }
   }
@@ -88,8 +88,8 @@ export class NotificationsGateway
       client.handshake.auth.token ||
       client.handshake.query.token;
 
-    if (typeof authHeader === "string") {
-      return authHeader.startsWith("Bearer ")
+    if (typeof authHeader === 'string') {
+      return authHeader.startsWith('Bearer ')
         ? authHeader.substring(7)
         : authHeader;
     }
@@ -100,9 +100,9 @@ export class NotificationsGateway
   sendNotificationToUser(userId: number, notification: WebSocketNotification) {
     const room = `user:${userId}`;
     this.logger.log(
-      `Enviando notificação ao usuário ${userId}: ${notification.type}`
+      `Enviando notificação ao usuário ${userId}: ${notification.type}`,
     );
-    this.server.to(room).emit("notification", notification);
+    this.server.to(room).emit('notification', notification);
   }
 
   isUserConnected(userId: number): boolean {

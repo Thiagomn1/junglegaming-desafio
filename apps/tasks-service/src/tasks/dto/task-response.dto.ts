@@ -32,16 +32,22 @@ export class TaskResponseDto {
   assignees: number[];
 
   @ApiProperty({
-    example: [{ id: 1, username: 'john_doe' }, { id: 2, username: 'jane_doe' }],
+    example: [
+      { id: 1, username: 'john_doe' },
+      { id: 2, username: 'jane_doe' },
+    ],
     type: [AssigneeDto],
-    description: 'Lista de usuários atribuídos com seus usernames'
+    description: 'Lista de usuários atribuídos com seus usernames',
   })
   assigneesDetails?: AssigneeDto[];
 
   @ApiProperty({ example: 5 })
   createdBy: number;
 
-  @ApiProperty({ example: 'john_doe', description: 'Username do criador da tarefa' })
+  @ApiProperty({
+    example: 'john_doe',
+    description: 'Username do criador da tarefa',
+  })
   createdByUsername?: string;
 
   @ApiProperty({ example: '2025-11-08T01:00:00.000Z' })

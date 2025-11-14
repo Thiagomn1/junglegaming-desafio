@@ -24,7 +24,9 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`🚀 Notifications Service rodando em http://localhost:${port}`);
   console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
-  console.log(`🔌 WebSocket disponível em ws://localhost:${port}/notifications`);
+  console.log(
+    `🔌 WebSocket disponível em ws://localhost:${port}/notifications`,
+  );
 }
 
 bootstrap().catch((err) => {
