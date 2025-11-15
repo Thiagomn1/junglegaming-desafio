@@ -161,3 +161,42 @@ export const tasksApi = {
     return response.data
   },
 }
+
+// Notifications API
+export interface Notification {
+  id: number
+  type: string
+  message: string
+  taskId: number | null
+  userId: number
+  read: boolean
+  metadata: Record<string, unknown> | null
+  createdAt: string
+}
+
+export const notificationsApi = {
+  getAll: async (): Promise<Array<Notification>> => {
+    const response = await api.get('/notifications')
+    return response.data
+  },
+  getUnread: async (): Promise<Array<Notification>> => {
+    const response = await api.get('/notifications/unread')
+    return response.data
+  },
+  getUnreadCount: async (): Promise<{ count: number }> => {
+    const response = await api.get('/notifications/unread/count')
+    return response.data
+  },
+  markAsRead: async (id: number): Promise<Notification> => {
+    const response = await api.patch(`/notifications/${id}/read`)
+    return response.data
+  },
+  markAllAsRead: async (): Promise<{ success: boolean }> => {
+    const response = await api.patch('/notifications/read-all')
+    return response.data
+  },
+  delete: async (id: number): Promise<{ success: boolean }> => {
+    const response = await api.delete(`/notifications/${id}`)
+    return response.data
+  },
+}

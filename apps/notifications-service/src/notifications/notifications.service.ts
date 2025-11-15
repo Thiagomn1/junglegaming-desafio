@@ -71,4 +71,16 @@ export class NotificationsService {
       where: { userId, read: false },
     });
   }
+
+  async delete(id: number, userId: number): Promise<void> {
+    const notification = await this.notificationsRepository.findOne({
+      where: { id, userId },
+    });
+
+    if (!notification) {
+      throw new NotFoundException('Notificação não encontrada');
+    }
+
+    await this.notificationsRepository.remove(notification);
+  }
 }

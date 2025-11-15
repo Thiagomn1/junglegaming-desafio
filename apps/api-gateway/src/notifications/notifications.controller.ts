@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Param,
   ParseIntPipe,
   UseGuards,
@@ -117,6 +118,26 @@ export class NotificationsController {
         this.httpService.patch(
           `${this.notificationsServiceUrl}/notifications/read-all`,
           {},
+          {
+            headers: { Authorization: req.headers.authorization },
+          },
+        ),
+      );
+      return data;
+    } catch (error) {
+      if (error instanceof AxiosError && error.response) {
+        throw new HttpException(error.response.data, error.response.status);
+      }
+      throw error;
+    }
+  }
+
+  @Delete(':id')
+  async delete(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    try {
+      const { data } = await firstValueFrom(
+        this.httpService.delete(
+          `${this.notificationsServiceUrl}/notifications/${id}`,
           {
             headers: { Authorization: req.headers.authorization },
           },

@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Patch,
+  Delete,
   Param,
   ParseIntPipe,
   UseGuards,
@@ -89,6 +90,20 @@ export class NotificationsController {
   })
   async markAllAsRead(@Request() req: any): Promise<{ success: boolean }> {
     await this.notificationsService.markAllAsRead(req.user.id);
+    return { success: true };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Deletar notificação' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notificação deletada com sucesso',
+  })
+  async delete(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ): Promise<{ success: boolean }> {
+    await this.notificationsService.delete(id, req.user.id);
     return { success: true };
   }
 }

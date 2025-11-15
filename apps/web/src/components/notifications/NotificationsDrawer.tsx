@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react'
+import { Bell, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { useNavigate } from '@tanstack/react-router'
@@ -21,9 +21,12 @@ export const NotificationsDrawer = () => {
   const unreadCount = useNotificationsStore((state) => state.unreadCount)
   const markAsRead = useNotificationsStore((state) => state.markAsRead)
   const markAllAsRead = useNotificationsStore((state) => state.markAllAsRead)
+  const deleteNotification = useNotificationsStore(
+    (state) => state.deleteNotification,
+  )
   const navigate = useNavigate()
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case NotificationType.TASK_CREATED:
         return '✨'
@@ -43,7 +46,7 @@ export const NotificationsDrawer = () => {
   }
 
   const getNotificationBadgeVariant = (
-    type: NotificationType,
+    type: string,
   ): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (type) {
       case NotificationType.TASK_CREATED:
@@ -62,7 +65,7 @@ export const NotificationsDrawer = () => {
     }
   }
 
-  const formatNotificationType = (type: NotificationType): string => {
+  const formatNotificationType = (type: string): string => {
     switch (type) {
       case NotificationType.TASK_CREATED:
         return 'Nova Tarefa'
@@ -84,7 +87,7 @@ export const NotificationsDrawer = () => {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative cursor-pointer">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge
@@ -129,24 +132,26 @@ export const NotificationsDrawer = () => {
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 rounded-lg border transition-colors cursor-pointer hover:bg-accent ${
+                    className={`p-4 rounded-lg border transition-colors ${
                       !notification.read ? 'bg-muted/50 border-primary/20' : ''
                     }`}
-                    onClick={() => {
-                      markAsRead(notification.id)
-                      if (notification.taskId) {
-                        navigate({
-                          to: '/tasks/$id',
-                          params: { id: String(notification.taskId) },
-                        })
-                      }
-                    }}
                   >
                     <div className="flex items-start gap-3">
                       <div className="text-2xl">
                         {getNotificationIcon(notification.type)}
                       </div>
-                      <div className="flex-1 space-y-1">
+                      <div
+                        className="flex-1 space-y-1 cursor-pointer"
+                        onClick={() => {
+                          markAsRead(notification.id)
+                          if (notification.taskId) {
+                            navigate({
+                              to: '/tasks/$id',
+                              params: { id: String(notification.taskId) },
+                            })
+                          }
+                        }}
+                      >
                         <div className="flex items-center gap-2">
                           <Badge
                             variant={getNotificationBadgeVariant(
@@ -164,12 +169,26 @@ export const NotificationsDrawer = () => {
                           {notification.message}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {formatDistanceToNow(new Date(notification.timestamp), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
+                          {formatDistanceToNow(
+                            new Date(notification.createdAt),
+                            {
+                              addSuffix: true,
+                              locale: ptBR,
+                            },
+                          )}
                         </p>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          deleteNotification(notification.id)
+                        }}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
