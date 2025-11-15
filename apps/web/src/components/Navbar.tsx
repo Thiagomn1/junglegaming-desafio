@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
 import { LoginDialog } from '@/components/auth/LoginDialog'
 import { RegisterDialog } from '@/components/auth/RegisterDialog'
+import { NotificationsDrawer } from '@/components/notifications/NotificationsDrawer'
 
 export function Navbar() {
   const [loginOpen, setLoginOpen] = useState(false)
@@ -32,6 +33,7 @@ export function Navbar() {
                     Minhas Tarefas
                   </Button>
                 </Link>
+                <NotificationsDrawer />
                 <span className="text-sm text-slate-600">
                   Olá, {user?.name}
                 </span>

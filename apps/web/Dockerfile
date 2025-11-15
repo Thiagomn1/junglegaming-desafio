@@ -34,7 +34,8 @@ RUN npm install
 COPY --from=pruner /app/out/full/ .
 COPY turbo.json turbo.json
 
-# Build da aplicação
+# Build do pacote types e depois do web (turbo gerencia dependências)
+RUN turbo run build --filter=@jungle/types...
 RUN turbo run build --filter=web...
 
 # ========================================
