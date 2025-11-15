@@ -27,6 +27,7 @@ RUN adduser --system --uid 1001 nestjs
 COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/dist ./apps/notifications-service/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/src/migrations ./apps/notifications-service/src/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/src/data-source.ts ./apps/notifications-service/src/data-source.ts
+COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/src/notifications ./apps/notifications-service/src/notifications
 COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/package*.json ./apps/notifications-service/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/notifications-service/tsconfig*.json ./apps/notifications-service/
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages

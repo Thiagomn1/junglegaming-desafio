@@ -6,21 +6,25 @@ export class CreateNotificationsTable1731266400000
   name = 'CreateNotificationsTable1731266400000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // Create enum type for notification types
+    // Create enum type for notification types if it doesn't exist
     await queryRunner.query(`
-      CREATE TYPE "notifications_type_enum" AS ENUM (
-        'task.created',
-        'task.updated',
-        'task.deleted',
-        'task.assigned',
-        'task.status_changed',
-        'task.comment.created'
-      )
+      DO $$ BEGIN
+        CREATE TYPE "notifications_type_enum" AS ENUM (
+          'task.created',
+          'task.updated',
+          'task.deleted',
+          'task.assigned',
+          'task.status_changed',
+          'task.comment.created'
+        );
+      EXCEPTION
+        WHEN duplicate_object THEN null;
+      END $$;
     `);
 
-    // Create notifications table
+    // Create notifications table if it doesn't exist
     await queryRunner.query(`
-      CREATE TABLE "notifications" (
+      CREATE TABLE IF NOT EXISTS "notifications" (
         "id" SERIAL NOT NULL,
         "type" "notifications_type_enum" NOT NULL,
         "message" text NOT NULL,
@@ -34,14 +38,14 @@ export class CreateNotificationsTable1731266400000
       )
     `);
 
-    // Create indexes for better query performance
+    // Create indexes for better query performance if they don't exist
     await queryRunner.query(`
-      CREATE INDEX "IDX_notifications_userId_read"
+      CREATE INDEX IF NOT EXISTS "IDX_notifications_userId_read"
       ON "notifications" ("userId", "read")
     `);
 
     await queryRunner.query(`
-      CREATE INDEX "IDX_notifications_userId_createdAt"
+      CREATE INDEX IF NOT EXISTS "IDX_notifications_userId_createdAt"
       ON "notifications" ("userId", "createdAt")
     `);
   }

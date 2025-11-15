@@ -12,6 +12,6 @@ export const AppDataSource = new DataSource({
   database: process.env.DB_NAME || 'jungle',
   entities: [Notification],
   migrations: [isProduction ? 'dist/migrations/*.js' : 'src/migrations/*.ts'],
-  synchronize: process.env.NODE_ENV !== 'production',
+  synchronize: false,
   logging: process.env.NODE_ENV !== 'production',
 });

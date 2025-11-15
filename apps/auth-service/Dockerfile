@@ -28,6 +28,7 @@ RUN adduser --system --uid 1001 nestjs
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/dist ./apps/auth-service/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/src/migrations ./apps/auth-service/src/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/src/data-source.ts ./apps/auth-service/src/data-source.ts
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/src/auth ./apps/auth-service/src/auth
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/package*.json ./apps/auth-service/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/tsconfig*.json ./apps/auth-service/
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages

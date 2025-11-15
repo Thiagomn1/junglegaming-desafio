@@ -27,6 +27,9 @@ RUN adduser --system --uid 1001 nestjs
 COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/dist ./apps/tasks-service/dist
 COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/src/migrations ./apps/tasks-service/src/migrations
 COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/src/data-source.ts ./apps/tasks-service/src/data-source.ts
+COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/src/tasks ./apps/tasks-service/src/tasks
+COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/src/comments ./apps/tasks-service/src/comments
+COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/src/task-history ./apps/tasks-service/src/task-history
 COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/package*.json ./apps/tasks-service/
 COPY --from=builder --chown=nestjs:nodejs /app/apps/tasks-service/tsconfig*.json ./apps/tasks-service/
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
