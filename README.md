@@ -31,7 +31,7 @@ Frontend (React) → API Gateway → Auth/Tasks/Notifications Services
 - API Gateway: 3001
 - Auth Service: 4000
 - Tasks Service: 5000
-- Notifications Service: 6000
+- Notifications Service: 6001 (WebSocket) - *Nota: Porta 6000 é bloqueada por navegadores*
 - RabbitMQ Management: 15672 (admin/admin)
 
 ## 📦 Componentes
@@ -94,6 +94,7 @@ npm run dev
 2. **Sem filtros no backend** - GET /tasks não aceita query params (workaround: client-side)
 3. **Sem paginação** - Performance degrada com muitos dados
 4. **WebSocket não valida token expirado** - Conexão persiste após JWT expirar
+5. **Porta 6000 bloqueada** - Navegadores bloqueiam porta 6000, usamos 6001 para WebSocket
 
 ## 🔧 Melhorias Futuras
 
@@ -133,7 +134,7 @@ npm run dev
        │                     │                      │
 ┌──────▼────────┐  ┌─────────▼────────┐  ┌─────────▼─────────────┐
 │ Auth Service  │  │  Tasks Service   │  │ Notifications Service │
-│  Port: 4000   │  │   Port: 5000     │  │     Port: 6000        │
+│  Port: 4000   │  │   Port: 5000     │  │   Port: 6001 (WS)     │
 │               │  │                  │  │                       │
 │ • JWT Auth    │  │ • CRUD Tasks     │  │ • WebSocket Server    │
 │ • User Mgmt   │  │ • Comments       │  │ • RabbitMQ Consumer   │
@@ -166,8 +167,8 @@ jungle-challenge/
 │   ├── api-gateway/          # Gateway principal (porta 3001)
 │   ├── auth-service/         # Serviço de autenticação (porta 4000)
 │   ├── tasks-service/        # Serviço de gerenciamento de tarefas (porta 5000)
-│   ├── notifications-service/ # Serviço de notificações (porta 6000)
-│   └── web/                  # Frontend React (porta 3000)
+│   ├── notifications-service/ # Serviço de notificações WebSocket (porta 6001)
+│   └── web/                  # Frontend React (porta 3000 local / 80 Docker)
 ├── packages/
 │   ├── types/                # Tipos TypeScript compartilhados
 │   ├── utils/                # Funções utilitárias compartilhadas
@@ -321,13 +322,20 @@ curl -X PATCH http://localhost:3001/notifications/5/read \
 ```javascript
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:6000/notifications", {
+const socket = io("http://localhost:6001/notifications", {
   auth: { token: "SEU_TOKEN" },
 });
 
-socket.on("connected", (data) => console.log("Conectado:", data));
+socket.on("connect", () => console.log("Conectado ao WebSocket"));
 socket.on("notification", (notif) => console.log("Nova notificação:", notif));
 ```
+
+**Tipos de notificações**:
+- `TASK_CREATED` - Quando você é atribuído a uma tarefa
+- `TASK_UPDATED` - Quando uma tarefa que você está envolvido é atualizada
+- `TASK_STATUS_CHANGED` - Quando o status de uma tarefa muda
+- `TASK_DELETED` - Quando uma tarefa é deletada
+- `COMMENT_CREATED` - Quando alguém comenta em uma tarefa que você criou
 
 **Swagger Docs**:
 
@@ -354,8 +362,10 @@ done
 
 ```bash
 VITE_API_URL=http://localhost:3001
-VITE_WS_URL=http://localhost:6000/notifications
+VITE_NOTIFICATIONS_SERVICE_URL=http://localhost:6001
 ```
+
+**Importante**: A porta 6000 é bloqueada por navegadores modernos (Chrome, Firefox) por questões de segurança. Usamos 6001 para evitar `ERR_UNSAFE_PORT`.
 
 ### Backend Services
 

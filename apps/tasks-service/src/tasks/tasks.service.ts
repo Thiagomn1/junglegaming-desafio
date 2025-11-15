@@ -137,6 +137,8 @@ export class TasksService {
 
     const event: TaskUpdatedEvent = {
       taskId: updatedTask.id,
+      title: updatedTask.title,
+      assignees: updatedTask.assignees,
       updatedBy: userId || task.createdBy,
       changes: updateTaskDto as Record<string, unknown>,
       timestamp: formatDate(new Date()),

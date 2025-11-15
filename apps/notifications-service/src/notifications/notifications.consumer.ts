@@ -103,24 +103,101 @@ export class NotificationsConsumer implements OnModuleInit {
       case 'task.created':
         notificationType = NotificationType.TASK_CREATED;
         message = `Nova tarefa criada: ${eventData.title}`;
-        if (eventData.createdBy) {
-          affectedUsers.push(eventData.createdBy);
+        if (eventData.assignees && Array.isArray(eventData.assignees)) {
+          affectedUsers.push(...eventData.assignees);
         }
         break;
 
-      case 'task.updated':
-        notificationType = NotificationType.TASK_UPDATED;
-        message = `Tarefa atualizada`;
+      case 'task.updated': {
+        const changes = eventData.changes || {};
+
+        if (eventData.assignees && Array.isArray(eventData.assignees)) {
+          affectedUsers.push(...eventData.assignees);
+        }
+
+        if (changes.assignees && Array.isArray(changes.assignees.old)) {
+          affectedUsers.push(...changes.assignees.old);
+        }
 
         if (eventData.updatedBy) {
-          affectedUsers.push(eventData.updatedBy);
+          affectedUsers = affectedUsers.filter(
+            (id) => id !== eventData.updatedBy,
+          );
         }
 
-        if (eventData.changes && eventData.changes.status) {
+        const messageParts: string[] = [];
+        const taskTitle = eventData.title || 'tarefa';
+
+        if (changes.status) {
           notificationType = NotificationType.TASK_STATUS_CHANGED;
-          message = `Status da tarefa alterado para: ${eventData.changes.status}`;
+          const statusMap = {
+            TODO: 'A Fazer',
+            IN_PROGRESS: 'Em Progresso',
+            REVIEW: 'Em Revisão',
+            DONE: 'Concluída',
+          };
+          const newStatus = statusMap[changes.status] || changes.status;
+          messageParts.push(`Status: "${newStatus}"`);
         }
+
+        if (changes.priority) {
+          if (!notificationType) {
+            notificationType = NotificationType.TASK_UPDATED;
+          }
+          const priorityMap = {
+            LOW: 'Baixa',
+            MEDIUM: 'Média',
+            HIGH: 'Alta',
+            URGENT: 'Urgente',
+          };
+          const newPriority = priorityMap[changes.priority] || changes.priority;
+          messageParts.push(`Prioridade: "${newPriority}"`);
+        }
+
+        if (changes.assignees) {
+          if (!notificationType) {
+            notificationType = NotificationType.TASK_ASSIGNED;
+          }
+          messageParts.push('Responsáveis alterados');
+        }
+
+        if (changes.title) {
+          if (!notificationType) {
+            notificationType = NotificationType.TASK_UPDATED;
+          }
+          messageParts.push('Título alterado');
+        }
+
+        if (changes.description) {
+          if (!notificationType) {
+            notificationType = NotificationType.TASK_UPDATED;
+          }
+          messageParts.push('Descrição atualizada');
+        }
+
+        if (changes.dueDate) {
+          if (!notificationType) {
+            notificationType = NotificationType.TASK_UPDATED;
+          }
+          messageParts.push('Prazo atualizado');
+        }
+
+        if (messageParts.length === 0) {
+          notificationType = NotificationType.TASK_UPDATED;
+          message = `Tarefa atualizada: ${taskTitle}`;
+        } else if (messageParts.length === 1) {
+          message = `${messageParts[0]} em: ${taskTitle}`;
+        } else {
+          message = `Alterações em "${taskTitle}": ${messageParts.join(', ')}`;
+        }
+
+        if (!notificationType) {
+          notificationType = NotificationType.TASK_UPDATED;
+        }
+
+        affectedUsers = Array.from(new Set(affectedUsers));
         break;
+      }
 
       case 'task.deleted':
         notificationType = NotificationType.TASK_DELETED;
@@ -130,7 +207,7 @@ export class NotificationsConsumer implements OnModuleInit {
         }
         break;
 
-      case 'task.comment.created':
+      case 'task.comment.created': {
         notificationType = NotificationType.COMMENT_CREATED;
         message = `Novo comentário em: ${eventData.taskTitle || 'tarefa'}`;
 
@@ -138,12 +215,19 @@ export class NotificationsConsumer implements OnModuleInit {
           affectedUsers.push(eventData.taskAuthorId);
         }
 
-        if (eventData.authorId && affectedUsers.includes(eventData.authorId)) {
+        if (eventData.assignees && Array.isArray(eventData.assignees)) {
+          affectedUsers.push(...eventData.assignees);
+        }
+
+        if (eventData.authorId) {
           affectedUsers = affectedUsers.filter(
             (id) => id !== eventData.authorId,
           );
         }
+
+        affectedUsers = Array.from(new Set(affectedUsers));
         break;
+      }
 
       default:
         this.logger.warn(`Unknown routing key: ${routingKey}`);

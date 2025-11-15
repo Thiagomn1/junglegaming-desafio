@@ -35,7 +35,7 @@ export class Task {
   })
   status: TaskStatus;
 
-  @Column('simple-array', { default: '' })
+  @Column('int', { array: true, default: () => "'{}'", nullable: false })
   assignees: number[];
 
   @Column()

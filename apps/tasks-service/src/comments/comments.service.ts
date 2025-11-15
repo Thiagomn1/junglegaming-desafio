@@ -57,6 +57,7 @@ export class CommentsService {
       createdAt: savedComment.createdAt,
       taskAuthorId: task.createdBy,
       taskTitle: task.title,
+      assignees: task.assignees || [],
     };
     await this.rabbitMQService.publishEvent('task.comment.created', event);
 

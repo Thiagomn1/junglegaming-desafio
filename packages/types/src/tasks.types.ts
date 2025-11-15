@@ -83,6 +83,8 @@ export interface TaskCreatedEvent {
 
 export interface TaskUpdatedEvent {
   taskId: number;
+  title?: string;
+  assignees?: number[];
   updatedBy: number;
   changes: Record<string, unknown>;
   timestamp: string;
@@ -102,6 +104,7 @@ export interface TaskCommentCreatedEvent {
   createdAt: Date;
   taskAuthorId: number;
   taskTitle: string;
+  assignees?: number[];
 }
 
 export interface TaskWithMetadata extends Task {
