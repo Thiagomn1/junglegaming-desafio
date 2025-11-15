@@ -10,6 +10,7 @@ if [ -z "$SERVICE" ] || [ -z "$MIGRATION_NAME" ]; then
   echo "Exemplos:"
   echo "  npm run migration:generate-helper auth AddUserAvatar"
   echo "  npm run migration:generate-helper tasks AddTaskTags"
+  echo "  npm run migration:generate-helper notifications AddNotificationSettings"
   exit 1
 fi
 
@@ -21,8 +22,11 @@ case $SERVICE in
   tasks)
     WORKSPACE="tasks-service"
     ;;
+  notifications)
+    WORKSPACE="notifications-service"
+    ;;
   *)
-    echo "❌ Service inválido: $SERVICE"
+    echo "❌ Service inválido: $SERVICE (opções: auth, tasks, notifications)"
     exit 1
     ;;
 esac

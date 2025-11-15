@@ -13,16 +13,13 @@ export const useWebSocketConnection = () => {
   const disconnect = useNotificationsStore((state) => state.disconnect)
 
   useEffect(() => {
-    // Only connect if user is authenticated
     if (!user || !token) {
       disconnect()
       return
     }
 
-    // Connect with token
     connect(token)
 
-    // Cleanup on unmount or when user changes
     return () => {
       disconnect()
     }

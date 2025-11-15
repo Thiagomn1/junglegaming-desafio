@@ -4,12 +4,10 @@ RUN apk update
 WORKDIR /app
 RUN npm install -g turbo
 
-# Etapa de pruning (remove pacotes desnecessários)
 FROM base AS pruner
 COPY . .
 RUN turbo prune auth-service --docker
 
-# Etapa de build
 FROM base AS builder
 COPY .gitignore .gitignore
 COPY --from=pruner /app/out/json/ .
@@ -20,7 +18,6 @@ COPY turbo.json turbo.json
 
 RUN turbo run build --filter=auth-service...
 
-# Etapa final (runner)
 FROM node:20-alpine AS runner
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
@@ -29,11 +26,13 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
 
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/dist ./apps/auth-service/dist
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/src/migrations ./apps/auth-service/src/migrations
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/src/data-source.ts ./apps/auth-service/src/data-source.ts
 COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/package*.json ./apps/auth-service/
+COPY --from=builder --chown=nestjs:nodejs /app/apps/auth-service/tsconfig*.json ./apps/auth-service/
 COPY --from=builder --chown=nestjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nestjs:nodejs /app/package*.json ./
 
-# Install production dependencies including bcrypt native compilation
 RUN npm install --omit=dev && \
     cd packages/utils && npm rebuild bcrypt --build-from-source && cd ../..
 
