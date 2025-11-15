@@ -4,6 +4,7 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
+      "@jungle/auth": ["../../packages/auth/dist"],
       "@jungle/types": ["../../packages/types/dist"],
       "@jungle/utils": ["../../packages/utils/dist"]
     }

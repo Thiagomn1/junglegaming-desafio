@@ -22,7 +22,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@jungle/auth';
 
 @ApiTags('auth')
 @Controller('auth')

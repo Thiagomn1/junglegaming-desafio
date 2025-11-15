@@ -21,7 +21,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@jungle/auth';
 import { CreateTaskDto, UpdateTaskDto, CreateCommentDto } from './dto';
 
 @ApiTags('tasks')

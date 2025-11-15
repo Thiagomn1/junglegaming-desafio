@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { TasksController } from './tasks.controller';
-import { JwtStrategy } from '../auth/strategies/jwt.strategy';
+import { JungleAuthModule } from '@jungle/auth';
 
 @Module({
   imports: [
-    PassportModule,
+    ConfigModule,
+    JungleAuthModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -23,6 +23,6 @@ import { JwtStrategy } from '../auth/strategies/jwt.strategy';
     }),
   ],
   controllers: [TasksController],
-  providers: [JwtStrategy],
+  providers: [],
 })
 export class TasksModule {}

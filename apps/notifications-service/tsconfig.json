@@ -2,7 +2,13 @@
   "extends": "@jungle/tsconfig/nestjs.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "baseUrl": "./",
+    "paths": {
+      "@jungle/auth": ["../../packages/auth/dist"],
+      "@jungle/types": ["../../packages/types/dist"],
+      "@jungle/utils": ["../../packages/utils/dist"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "test"]

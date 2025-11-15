@@ -1,19 +1,19 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 import { NotificationsConsumer } from './notifications.consumer';
 import { Notification } from './notification.entity';
 import { NotificationsGateway } from '../websocket/websocket.gateway';
-import { JwtStrategy } from '../auth/jwt.strategy';
+import { JungleAuthModule } from '@jungle/auth';
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([Notification]),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
+    JungleAuthModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -31,7 +31,6 @@ import { JwtStrategy } from '../auth/jwt.strategy';
     NotificationsService,
     NotificationsConsumer,
     NotificationsGateway,
-    JwtStrategy,
   ],
   exports: [NotificationsService],
 })

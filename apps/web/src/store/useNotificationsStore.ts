@@ -6,16 +6,13 @@ import type { Notification } from '@/lib/api'
 import { notificationsApi } from '@/lib/api'
 
 interface NotificationsState {
-  // WebSocket
   socket: Socket | null
   isConnected: boolean
 
-  // Notifications
   notifications: Array<Notification>
   unreadCount: number
   isLoading: boolean
 
-  // Actions
   connect: (token: string) => void
   disconnect: () => void
   fetchNotifications: () => Promise<void>

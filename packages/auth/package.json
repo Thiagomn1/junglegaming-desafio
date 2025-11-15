@@ -1,0 +1,22 @@
+{
+  "name": "@jungle/auth",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/config": "^3.0.0",
+    "@nestjs/passport": "^10.0.0",
+    "passport": "^0.6.0",
+    "passport-jwt": "^4.0.1",
+    "@jungle/types": "*"
+  },
+  "devDependencies": {
+    "@types/passport-jwt": "^3.0.9",
+    "typescript": "^5.0.0"
+  }
+}

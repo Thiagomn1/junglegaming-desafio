@@ -1,20 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { TasksController } from './tasks.controller';
 import { TasksService } from './tasks.service';
 import { Task } from './task.entity';
 import { RabbitMQService } from '../rabbitmq/rabbitmq.service';
-import { JwtStrategy } from '../strategies/jwt.strategy';
+import { JungleAuthModule } from '@jungle/auth';
 import { TaskHistoryModule } from '../task-history/task-history.module';
 import { AuthClientModule } from '../auth-client/auth-client.module';
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([Task]),
-    PassportModule,
+    JungleAuthModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,7 +27,7 @@ import { AuthClientModule } from '../auth-client/auth-client.module';
     AuthClientModule,
   ],
   controllers: [TasksController],
-  providers: [TasksService, RabbitMQService, JwtStrategy],
+  providers: [TasksService, RabbitMQService],
   exports: [TasksService],
 })
 export class TasksModule {}

@@ -18,7 +18,7 @@ import {
 } from '@nestjs/swagger';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto, UpdateTaskDto, TaskResponseDto } from './dto';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@jungle/auth';
 import { TaskHistoryService } from '../task-history/task-history.service';
 import { TaskHistoryResponseDto } from '../task-history/dto';
 

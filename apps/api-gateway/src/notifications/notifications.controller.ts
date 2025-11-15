@@ -12,7 +12,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@jungle/auth';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AxiosError } from 'axios';
 

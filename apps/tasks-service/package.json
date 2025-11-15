@@ -21,6 +21,7 @@
     "migration:create": "typeorm migration:create"
   },
   "dependencies": {
+    "@jungle/auth": "*",
     "@jungle/types": "*",
     "@jungle/utils": "*",
     "@nestjs/common": "^11.0.1",

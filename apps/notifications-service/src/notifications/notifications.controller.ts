@@ -16,7 +16,7 @@ import {
 } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { NotificationResponseDto } from './dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { JwtAuthGuard } from '@jungle/auth';
 
 @ApiTags('notifications')
 @Controller('notifications')
