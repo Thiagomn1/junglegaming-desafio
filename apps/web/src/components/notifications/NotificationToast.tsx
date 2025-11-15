@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { toast } from 'sonner'
 import { useNavigate } from '@tanstack/react-router'
 import { NotificationType } from '@jungle/types'
@@ -23,26 +23,33 @@ const getNotificationTitle = (type: NotificationType): string => {
   }
 }
 
-/**
- * Component that listens to notification store and displays toasts
- * Should be mounted once at the app root level
- */
 export const NotificationToast = () => {
   const notifications = useNotificationsStore((state) => state.notifications)
   const navigate = useNavigate()
+  const lastNotificationIdRef = useRef<number | null>(null)
+  const isInitialMountRef = useRef(true)
 
   useEffect(() => {
-    // Only show toast if there are notifications
     if (notifications.length === 0) {
       return
     }
 
-    // Get the latest notification
     const latestNotification = notifications[0]
+
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false
+      lastNotificationIdRef.current = latestNotification.id
+      return
+    }
+
+    if (lastNotificationIdRef.current === latestNotification.id) {
+      return
+    }
+
+    lastNotificationIdRef.current = latestNotification.id
     const { type, message, taskId } = latestNotification
     const title = getNotificationTitle(type)
 
-    // Create click handler for navigating to task
     const handleClick = () => {
       if (taskId) {
         navigate({ to: '/tasks/$id', params: { id: String(taskId) } })

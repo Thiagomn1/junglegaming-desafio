@@ -52,8 +52,11 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
     newSocket.on('connect', () => {
       set({ isConnected: true })
-      // Fetch notifications when connected
-      get().fetchNotifications()
+      get()
+        .fetchNotifications()
+        .catch((err) =>
+          console.error('[Notifications] Failed to fetch on connect:', err),
+        )
     })
 
     newSocket.on('disconnect', () => {
@@ -91,19 +94,18 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
         isLoading: false,
       })
     } catch (error) {
-      console.error('Failed to fetch notifications:', error)
+      console.error('[Notifications] Failed to fetch notifications:', error)
       set({ isLoading: false })
     }
   },
 
   addNotification: (notification: BaseWebSocketNotification) => {
-    // Create a temporary notification from WebSocket data
     const newNotification: Notification = {
-      id: Date.now(), // Temporary ID, will be replaced when we refetch
+      id: Date.now(),
       type: notification.type,
       message: notification.message,
       taskId: notification.taskId || null,
-      userId: 0, // Will be set by backend
+      userId: 0,
       read: false,
       metadata: notification.metadata || null,
       createdAt: new Date(notification.timestamp).toISOString(),
@@ -113,11 +115,6 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
       notifications: [newNotification, ...state.notifications],
       unreadCount: state.unreadCount + 1,
     }))
-
-    // Optionally refetch to get the real notification from backend
-    setTimeout(() => {
-      get().fetchNotifications()
-    }, 500)
   },
 
   markAsRead: async (notificationId: number) => {

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import type { NotificationType } from '@jungle/types'
 
 import { useAuthStore } from '@/store/authStore'
 
@@ -165,7 +166,7 @@ export const tasksApi = {
 // Notifications API
 export interface Notification {
   id: number
-  type: string
+  type: NotificationType
   message: string
   taskId: number | null
   userId: number

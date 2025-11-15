@@ -162,7 +162,10 @@ export class TasksService {
 
     const event: TaskDeletedEvent = {
       taskId: id,
+      title: task.title,
       deletedBy: userId || task.createdBy,
+      assignees: task.assignees,
+      authorId: task.createdBy,
       timestamp: formatDate(new Date()),
     };
     await this.rabbitMQService.publishEvent('task.deleted', event);

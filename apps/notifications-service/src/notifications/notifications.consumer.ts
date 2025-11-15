@@ -23,7 +23,6 @@ export class NotificationsConsumer implements OnModuleInit {
 
   async onModuleInit() {
     await this.connect();
-    await this.consumeEvents();
   }
 
   private async connect() {
@@ -53,6 +52,8 @@ export class NotificationsConsumer implements OnModuleInit {
       );
 
       this.logger.log('Conectado ao RabbitMQ e filas configuradas');
+
+      await this.consumeEvents();
     } catch (error: any) {
       this.logger.error(`Falha ao conectar ao RabbitMQ: ${error.message}`);
       setTimeout(() => {
@@ -205,6 +206,10 @@ export class NotificationsConsumer implements OnModuleInit {
         if (eventData.authorId) {
           affectedUsers.push(eventData.authorId);
         }
+        if (eventData.assignees && Array.isArray(eventData.assignees)) {
+          affectedUsers.push(...eventData.assignees);
+        }
+        affectedUsers = Array.from(new Set(affectedUsers));
         break;
 
       case 'task.comment.created': {

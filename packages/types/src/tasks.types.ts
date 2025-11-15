@@ -92,7 +92,10 @@ export interface TaskUpdatedEvent {
 
 export interface TaskDeletedEvent {
   taskId: number;
+  title: string;
   deletedBy: number;
+  assignees?: number[];
+  authorId?: number;
   timestamp: string;
 }
 

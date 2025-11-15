@@ -17,7 +17,7 @@ import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AxiosError } from 'axios';
 
 @ApiTags('notifications')
-@Controller('notifications')
+@Controller('api/notifications')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class NotificationsController {
