@@ -7,9 +7,7 @@ import { toast } from 'sonner'
 import { authApi, tasksApi } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
 import { Button } from '@/components/ui/button'
-import { TaskFilters } from '@/components/tasks/TaskFilters'
-import { TaskList } from '@/components/tasks/TaskList'
-import { CreateTaskDialog } from '@/components/tasks/CreateTaskDialog'
+import { CreateTaskDialog, TaskFilters, TaskList } from '@/components/tasks'
 
 export const Route = createFileRoute('/tasks')({
   component: TasksPage,

@@ -1,7 +1,7 @@
 import { TaskCard } from './TaskCard'
+import type { TaskPriority, TaskStatus } from '@/lib/task-constants'
 import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { TaskStatus, TaskPriority } from '@/lib/task-constants'
 
 interface Task {
   id: string
@@ -13,7 +13,7 @@ interface Task {
 }
 
 interface TaskListProps {
-  tasks: Task[]
+  tasks: Array<Task>
   isLoading: boolean
   hasNoTasks: boolean
 }

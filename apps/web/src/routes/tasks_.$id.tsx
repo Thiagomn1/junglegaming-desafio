@@ -14,10 +14,10 @@ import {
   DeleteTaskDialog,
   EditTaskDialog,
   TaskCommentsCard,
+  TaskDetailLoading,
   TaskDetailsCard,
   TaskHistoryCard,
 } from '@/components/tasks'
-import { TaskDetailLoading } from '@/components/tasks/TaskDetailLoading'
 
 export const Route = createFileRoute('/tasks_/$id')({
   component: TaskDetailPage,
@@ -164,7 +164,6 @@ function TaskDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
-        {/* Back button */}
         <Button
           variant="ghost"
           size="sm"
@@ -175,7 +174,6 @@ function TaskDetailPage() {
           Voltar
         </Button>
 
-        {/* Task Details */}
         <TaskDetailsCard
           task={task}
           isOwner={!!isOwner}
@@ -183,10 +181,8 @@ function TaskDetailPage() {
           onDelete={() => setIsDeleteDialogOpen(true)}
         />
 
-        {/* History Section */}
         <TaskHistoryCard history={history} />
 
-        {/* Comments Section */}
         <TaskCommentsCard
           comments={comments}
           isLoadingComments={isLoadingComments}
@@ -197,7 +193,6 @@ function TaskDetailPage() {
           isPending={createCommentMutation.isPending}
         />
 
-        {/* Edit Dialog */}
         <EditTaskDialog
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
@@ -212,7 +207,6 @@ function TaskDetailPage() {
           onToggleAssignee={toggleAssignee}
         />
 
-        {/* Delete Confirmation Dialog */}
         <DeleteTaskDialog
           open={isDeleteDialogOpen}
           onOpenChange={setIsDeleteDialogOpen}
