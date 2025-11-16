@@ -2,24 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Instala dependências necessárias
 RUN apk add --no-cache libc6-compat
 
-# Copia arquivos de configuração
 COPY package*.json ./
 COPY turbo.json ./
 
-# Copia os packages compartilhados (se houver)
 COPY packages ./packages
 
-# Copia o app web
 COPY apps/web ./apps/web
 
-# Instala dependências
 RUN npm install
 
-# Expõe porta do Vite dev server
 EXPOSE 3000
 
-# Comando para desenvolvimento com hot reload
 CMD ["npm", "run", "dev", "--workspace=web"]

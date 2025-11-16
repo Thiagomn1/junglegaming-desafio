@@ -22,7 +22,7 @@ services:
 
 
   db:
-    image: postgres:17-alpine
+    image: postgres:17.5-alpine3.21
     container_name: jungle-dev-postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
@@ -32,6 +32,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - challenge-network-dev
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -49,6 +51,8 @@ services:
       - "15672:15672" # Management UI
     volumes:
       - rabbitmq_dev_data:/var/lib/rabbitmq
+    networks:
+      - challenge-network-dev
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 10s
@@ -60,3 +64,7 @@ volumes:
     name: jungle_dev_postgres_data
   rabbitmq_dev_data:
     name: jungle_dev_rabbitmq_data
+
+networks:
+  challenge-network-dev:
+    driver: bridge

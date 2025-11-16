@@ -107,10 +107,10 @@ npm run dev
 ## ⏱️ Tempo Gasto
 
 - **Backend** (~16h): Setup (2h), Auth (3h), Tasks (4h), Notifications (4h), Gateway (2h), Debug (1h)
-- **Frontend** (~Xh): TODO
+- **Frontend** (~12h): Setup + Routing (2h), Auth UI (2h), Tasks UI (4h), Notifications UI (2h), Polish + Refactoring (2h)
 - **DevOps** (~4h): Docker (2h), Documentação (2h)
 
-**Total**: ~28 horas
+**Total**: ~32 horas
 
 ---
 
@@ -339,10 +339,120 @@ socket.on("notification", (notif) => console.log("Nova notificação:", notif));
 
 **Swagger Docs**:
 
-- API Gateway: http://localhost:3001/api/docs
-- Auth Service: http://localhost:4000/api/docs
-- Tasks Service: http://localhost:5000/api/docs
-- Notifications Service: http://localhost:6000/api/docs
+- API Gateway: http://localhost:3001/api-docs
+- Auth Service: http://localhost:4000/api-docs (via network interna)
+- Tasks Service: http://localhost:5000/api-docs (via network interna)
+- Notifications Service: http://localhost:6001/api-docs
+
+</details>
+
+<details>
+<summary><b>🔧 Troubleshooting</b></summary>
+
+### Problemas Comuns
+
+#### 1. Porta 3001 já em uso
+```bash
+# Descobrir o processo usando a porta
+lsof -i :3001
+# Ou usar outra porta no .env
+API_GATEWAY_PORT=3002
+```
+
+#### 2. WebSocket não conecta (ERR_UNSAFE_PORT)
+**Problema**: Porta 6000 é bloqueada por navegadores por segurança.
+**Solução**: Usar porta 6001 (já configurado no docker-compose.yml)
+
+#### 3. Migrações falhando
+```bash
+# Verificar se database está rodando
+docker ps | grep db
+
+# Rodar migrações manualmente
+npm run migration:run --workspace=auth-service
+npm run migration:run --workspace=tasks-service
+npm run migration:run --workspace=notifications-service
+```
+
+#### 4. ECONNREFUSED ao conectar no banco
+**Causa**: PostgreSQL ainda não está pronto quando serviço inicia.
+**Solução**: Docker Compose `depends_on` está configurado, mas pode precisar de retry manual:
+```bash
+docker-compose restart auth-service tasks-service notifications-service
+```
+
+#### 5. RabbitMQ não conecta
+```bash
+# Verificar se RabbitMQ está rodando
+docker ps | grep rabbitmq
+
+# Acessar management UI
+open http://localhost:15672
+# Credenciais: admin/admin
+```
+
+#### 6. Frontend não carrega (VITE_API_URL undefined)
+**Causa**: Variáveis de ambiente não injetadas no build Docker.
+**Solução**: Passar build args no docker-compose:
+```bash
+docker-compose build web --build-arg VITE_API_URL=http://localhost:3001/api
+```
+
+#### 7. Token inválido / 401 Unauthorized
+```bash
+# Verificar se JWT_SECRET é o mesmo em todos os serviços
+grep JWT_SECRET apps/*/. env
+
+# Gerar novo token fazendo login novamente
+curl -X POST http://localhost:3001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123"}'
+```
+
+#### 8. Containers ficam reiniciando
+```bash
+# Ver logs do container com problema
+docker logs -f <container-name>
+
+# Verificar health checks
+docker inspect <container-name> | grep -A 10 Health
+```
+
+#### 9. Notificações não aparecem
+**Checklist**:
+- ✅ WebSocket conectado? (ver console do navegador)
+- ✅ Token JWT válido no auth do socket?
+- ✅ RabbitMQ rodando?
+- ✅ Evento sendo publicado? (ver logs do tasks-service)
+
+#### 10. Build falha com "Out of memory"
+```bash
+# Aumentar memória do Docker Desktop
+# Preferências → Resources → Memory: 4GB+
+
+# Ou buildar serviços individualmente
+docker-compose build api-gateway
+docker-compose build auth-service
+# etc...
+```
+
+### Comandos Úteis
+
+```bash
+# Ver logs de todos os serviços
+docker-compose logs -f
+
+# Ver logs de um serviço específico
+docker-compose logs -f api-gateway
+
+# Resetar tudo (⚠️ apaga dados)
+docker-compose down -v
+docker system prune -a
+
+# Rebuild completo
+docker-compose build --no-cache
+docker-compose up -d
+```
 
 </details>
 

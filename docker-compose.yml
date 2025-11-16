@@ -4,6 +4,9 @@ services:
     build:
       context: .
       dockerfile: ./apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3001/api}
+        VITE_NOTIFICATIONS_SERVICE_URL: ${VITE_NOTIFICATIONS_SERVICE_URL:-http://localhost:6001}
     ports:
       - '80:80'
     environment:
@@ -12,6 +15,14 @@ services:
       - challenge-network
     depends_on:
       - api-gateway
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
 
   api-gateway:
     container_name: api-gateway
@@ -39,6 +50,14 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   auth-service:
     build:
@@ -60,6 +79,14 @@ services:
       - challenge-network
     depends_on:
       - db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
 
   tasks-service:
     build:
@@ -85,6 +112,14 @@ services:
       - db
       - rabbitmq
       - auth-service
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   notifications-service:
     build:
@@ -108,13 +143,23 @@ services:
     depends_on:
       - db
       - rabbitmq
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   db:
     image: postgres:17.5-alpine3.21
     container_name: db
     restart: always
-    ports:
-      - '5432:5432'
+    # Porta NÃO exposta em produção por segurança - apenas acessível via rede interna
+    # Para acesso externo durante desenvolvimento, descomente a linha abaixo:
+    # ports:
+    #   - '5432:5432'
     networks:
       - challenge-network
     environment:
@@ -123,6 +168,14 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-challenge_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
 
   rabbitmq:
     image: rabbitmq:3.13-management-alpine
@@ -138,6 +191,14 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-admin}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
 volumes:
   postgres_data:
