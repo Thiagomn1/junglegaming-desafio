@@ -31,7 +31,7 @@ Frontend (React) → API Gateway → Auth/Tasks/Notifications Services
 - API Gateway: 3001
 - Auth Service: 4000
 - Tasks Service: 5000
-- Notifications Service: 6001 (WebSocket) - *Nota: Porta 6000 é bloqueada por navegadores*
+- Notifications Service: 6001 (WebSocket) - _Nota: Porta 6000 é bloqueada por navegadores_
 - RabbitMQ Management: 15672 (admin/admin)
 
 ## 📦 Componentes
@@ -98,19 +98,16 @@ npm run dev
 
 ## 🔧 Melhorias Futuras
 
-**Curto prazo**: Testes (Jest/Supertest), logging estruturado, health checks
+**Curto prazo**: Testes (Jest/Supertest), logging estruturado
 
 **Médio prazo**: Paginação, Redis cache, CI/CD, monitoramento (Prometheus/Grafana)
 
-**Longo prazo**: Kubernetes, service mesh, event sourcing, multi-tenancy
+**Longo prazo**: Kubernetes, event sourcing
 
 ## ⏱️ Tempo Gasto
 
-- **Backend** (~16h): Setup (2h), Auth (3h), Tasks (4h), Notifications (4h), Gateway (2h), Debug (1h)
-- **Frontend** (~12h): Setup + Routing (2h), Auth UI (2h), Tasks UI (4h), Notifications UI (2h), Polish + Refactoring (2h)
-- **DevOps** (~4h): Docker (2h), Documentação (2h)
-
-**Total**: ~32 horas
+- **Backend**: 3 dias
+- **Frontend** 2 dias
 
 ---
 
@@ -264,7 +261,7 @@ curl http://localhost:3001/api/auth/profile \
 
 ### Tasks (via Gateway)
 
-**POST /api/tasks** (requer Bearer token)
+**POST /api/tasks** - Criar nova tarefa (requer Bearer token)
 
 ```bash
 curl -X POST http://localhost:3001/api/tasks \
@@ -274,46 +271,110 @@ curl -X POST http://localhost:3001/api/tasks \
     "title": "Nova tarefa",
     "description": "Descrição",
     "priority": "HIGH",
-    "status": "TODO"
+    "status": "TODO",
+    "assignees": [2, 3]
   }'
 ```
 
-**GET /api/tasks** (requer Bearer token)
+**GET /api/tasks** - Listar todas as tarefas (requer Bearer token)
 
 ```bash
 curl http://localhost:3001/api/tasks \
   -H "Authorization: Bearer {token}"
 ```
 
-**PATCH /api/tasks/:id** (requer Bearer token)
+**GET /api/tasks/:id** - Obter tarefa específica (requer Bearer token)
+
+```bash
+curl http://localhost:3001/api/tasks/1 \
+  -H "Authorization: Bearer {token}"
+```
+
+**PATCH /api/tasks/:id** - Atualizar tarefa (requer Bearer token)
 
 ```bash
 curl -X PATCH http://localhost:3001/api/tasks/1 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer {token}" \
-  -d '{"status": "DONE"}'
+  -d '{
+    "status": "DONE",
+    "assignees": [2]
+  }'
+```
+
+**DELETE /api/tasks/:id** - Deletar tarefa (requer Bearer token)
+
+```bash
+curl -X DELETE http://localhost:3001/api/tasks/1 \
+  -H "Authorization: Bearer {token}"
+```
+
+**GET /api/tasks/:id/history** - Obter histórico de mudanças (requer Bearer token)
+
+```bash
+curl http://localhost:3001/api/tasks/1/history \
+  -H "Authorization: Bearer {token}"
+```
+
+**POST /api/tasks/:taskId/comments** - Criar comentário (requer Bearer token)
+
+```bash
+curl -X POST http://localhost:3001/api/tasks/1/comments \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {token}" \
+  -d '{
+    "text": "Meu comentário na tarefa"
+  }'
+```
+
+**GET /api/tasks/:taskId/comments** - Listar comentários (requer Bearer token)
+
+```bash
+curl http://localhost:3001/api/tasks/1/comments \
+  -H "Authorization: Bearer {token}"
 ```
 
 ### Notificações (via Gateway)
 
-**GET /notifications** (requer Bearer token)
+**GET /api/notifications** - Listar todas as notificações (requer Bearer token)
 
 ```bash
-curl http://localhost:3001/notifications \
+curl http://localhost:3001/api/notifications \
   -H "Authorization: Bearer {token}"
 ```
 
-**GET /notifications/unread/count** (requer Bearer token)
+**GET /api/notifications/unread** - Listar notificações não lidas (requer Bearer token)
 
 ```bash
-curl http://localhost:3001/notifications/unread/count \
+curl http://localhost:3001/api/notifications/unread \
   -H "Authorization: Bearer {token}"
 ```
 
-**PATCH /notifications/:id/read** (requer Bearer token)
+**GET /api/notifications/unread/count** - Obter contagem de não lidas (requer Bearer token)
 
 ```bash
-curl -X PATCH http://localhost:3001/notifications/5/read \
+curl http://localhost:3001/api/notifications/unread/count \
+  -H "Authorization: Bearer {token}"
+```
+
+**PATCH /api/notifications/:id/read** - Marcar como lida (requer Bearer token)
+
+```bash
+curl -X PATCH http://localhost:3001/api/notifications/5/read \
+  -H "Authorization: Bearer {token}"
+```
+
+**PATCH /api/notifications/read-all** - Marcar todas como lidas (requer Bearer token)
+
+```bash
+curl -X PATCH http://localhost:3001/api/notifications/read-all \
+  -H "Authorization: Bearer {token}"
+```
+
+**DELETE /api/notifications/:id** - Deletar notificação (requer Bearer token)
+
+```bash
+curl -X DELETE http://localhost:3001/api/notifications/5 \
   -H "Authorization: Bearer {token}"
 ```
 
@@ -331,11 +392,13 @@ socket.on("notification", (notif) => console.log("Nova notificação:", notif));
 ```
 
 **Tipos de notificações**:
-- `TASK_CREATED` - Quando você é atribuído a uma tarefa
+
+- `TASK_CREATED` - Quando você cria uma tarefa
+- `TASK_ASSIGNED` - Quando você é atribuído a uma tarefa
 - `TASK_UPDATED` - Quando uma tarefa que você está envolvido é atualizada
 - `TASK_STATUS_CHANGED` - Quando o status de uma tarefa muda
 - `TASK_DELETED` - Quando uma tarefa é deletada
-- `COMMENT_CREATED` - Quando alguém comenta em uma tarefa que você criou
+- `COMMENT_CREATED` - Quando alguém comenta em uma tarefa que você criou ou está atribuído
 
 **Swagger Docs**:
 
@@ -352,6 +415,7 @@ socket.on("notification", (notif) => console.log("Nova notificação:", notif));
 ### Problemas Comuns
 
 #### 1. Porta 3001 já em uso
+
 ```bash
 # Descobrir o processo usando a porta
 lsof -i :3001
@@ -360,10 +424,12 @@ API_GATEWAY_PORT=3002
 ```
 
 #### 2. WebSocket não conecta (ERR_UNSAFE_PORT)
+
 **Problema**: Porta 6000 é bloqueada por navegadores por segurança.
 **Solução**: Usar porta 6001 (já configurado no docker-compose.yml)
 
 #### 3. Migrações falhando
+
 ```bash
 # Verificar se database está rodando
 docker ps | grep db
@@ -375,13 +441,16 @@ npm run migration:run --workspace=notifications-service
 ```
 
 #### 4. ECONNREFUSED ao conectar no banco
+
 **Causa**: PostgreSQL ainda não está pronto quando serviço inicia.
 **Solução**: Docker Compose `depends_on` está configurado, mas pode precisar de retry manual:
+
 ```bash
 docker-compose restart auth-service tasks-service notifications-service
 ```
 
 #### 5. RabbitMQ não conecta
+
 ```bash
 # Verificar se RabbitMQ está rodando
 docker ps | grep rabbitmq
@@ -392,13 +461,16 @@ open http://localhost:15672
 ```
 
 #### 6. Frontend não carrega (VITE_API_URL undefined)
+
 **Causa**: Variáveis de ambiente não injetadas no build Docker.
 **Solução**: Passar build args no docker-compose:
+
 ```bash
 docker-compose build web --build-arg VITE_API_URL=http://localhost:3001/api
 ```
 
 #### 7. Token inválido / 401 Unauthorized
+
 ```bash
 # Verificar se JWT_SECRET é o mesmo em todos os serviços
 grep JWT_SECRET apps/*/. env
@@ -410,6 +482,7 @@ curl -X POST http://localhost:3001/api/auth/login \
 ```
 
 #### 8. Containers ficam reiniciando
+
 ```bash
 # Ver logs do container com problema
 docker logs -f <container-name>
@@ -419,13 +492,16 @@ docker inspect <container-name> | grep -A 10 Health
 ```
 
 #### 9. Notificações não aparecem
+
 **Checklist**:
+
 - ✅ WebSocket conectado? (ver console do navegador)
 - ✅ Token JWT válido no auth do socket?
 - ✅ RabbitMQ rodando?
 - ✅ Evento sendo publicado? (ver logs do tasks-service)
 
 #### 10. Build falha com "Out of memory"
+
 ```bash
 # Aumentar memória do Docker Desktop
 # Preferências → Resources → Memory: 4GB+
