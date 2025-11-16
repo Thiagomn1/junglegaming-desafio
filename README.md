@@ -10,7 +10,8 @@ docker-compose up -d
 
 # Acessar
 http://localhost      # Frontend
-http://localhost:3001 # API Gateway
+http://localhost:3001/ # API Gateway
+http://localhost:3001/api/docs # Swagger
 ```
 
 **Pronto!** Todos os serviços estarão rodando.
@@ -83,11 +84,11 @@ Backend em: http://localhost:3001
 
 ### Resumo dos arquivos Docker Compose
 
-| Arquivo                         | Uso                                      | Serviços                                    |
-| ------------------------------- | ---------------------------------------- | ------------------------------------------- |
-| `docker-compose.yml`            | **Produção** - tudo no Docker            | Web + Backend + DB + RabbitMQ               |
-| `docker-compose.backend.yml`    | **Dev Frontend** - backend no Docker     | Backend + DB + RabbitMQ (sem Web)           |
-| `docker-compose.dev.yml`        | **Dev Backend** - só infra no Docker     | DB + RabbitMQ (sem serviços)                |
+| Arquivo                      | Uso                                  | Serviços                          |
+| ---------------------------- | ------------------------------------ | --------------------------------- |
+| `docker-compose.yml`         | **Produção** - tudo no Docker        | Web + Backend + DB + RabbitMQ     |
+| `docker-compose.backend.yml` | **Dev Frontend** - backend no Docker | Backend + DB + RabbitMQ (sem Web) |
+| `docker-compose.dev.yml`     | **Dev Backend** - só infra no Docker | DB + RabbitMQ (sem serviços)      |
 
 ## 🎯 Decisões Técnicas
 
