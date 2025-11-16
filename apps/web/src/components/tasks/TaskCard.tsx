@@ -47,7 +47,7 @@ export function TaskCard({ task }: TaskCardProps) {
           {task.dueDate && (
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Calendar className="h-4 w-4" />
-              {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+              {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('pt-BR')}
             </div>
           )}
         </CardContent>

@@ -106,8 +106,9 @@ npm run dev
 
 ## ⏱️ Tempo Gasto
 
-- **Backend**: 3 dias
-- **Frontend** 2 dias
+- **Backend**: 5 dias
+- **Frontend** 3 dias
+- **Docker** 2 dias
 
 ---
 

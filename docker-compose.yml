@@ -156,10 +156,8 @@ services:
     image: postgres:17.5-alpine3.21
     container_name: db
     restart: always
-    # Porta NÃO exposta em produção por segurança - apenas acessível via rede interna
-    # Para acesso externo durante desenvolvimento, descomente a linha abaixo:
-    # ports:
-    #   - '5432:5432'
+    ports:
+      - '5432:5432'
     networks:
       - challenge-network
     environment:

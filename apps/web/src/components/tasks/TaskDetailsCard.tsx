@@ -101,7 +101,7 @@ export function TaskDetailsCard({
               <div>
                 <p className="text-slate-500 text-xs">Prazo</p>
                 <p className="font-medium">
-                  {new Date(task.dueDate).toLocaleDateString('pt-BR')}
+                  {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('pt-BR')}
                 </p>
               </div>
             </div>

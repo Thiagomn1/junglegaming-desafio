@@ -101,7 +101,8 @@ function TaskDetailPage() {
       setValueEdit('description', task.description || '')
       setValueEdit('status', task.status)
       setValueEdit('priority', task.priority)
-      setValueEdit('dueDate', task.dueDate || '')
+      // Converter ISO date para YYYY-MM-DD (sem conversão de timezone)
+      setValueEdit('dueDate', task.dueDate ? task.dueDate.split('T')[0] : '')
       const assigneesAsNumbers = (task.assignees || []).map((a) =>
         typeof a === 'string' ? parseInt(a, 10) : Number(a),
       )
