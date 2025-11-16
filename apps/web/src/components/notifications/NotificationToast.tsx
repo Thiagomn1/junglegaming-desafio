@@ -27,7 +27,7 @@ export const NotificationToast = () => {
   const notifications = useNotificationsStore((state) => state.notifications)
   const navigate = useNavigate()
   const lastNotificationIdRef = useRef<number | null>(null)
-  const isInitialMountRef = useRef(true)
+  const mountTimeRef = useRef<number>(Date.now())
 
   useEffect(() => {
     if (notifications.length === 0) {
@@ -36,8 +36,8 @@ export const NotificationToast = () => {
 
     const latestNotification = notifications[0]
 
-    if (isInitialMountRef.current) {
-      isInitialMountRef.current = false
+    const notificationTime = new Date(latestNotification.createdAt).getTime()
+    if (notificationTime < mountTimeRef.current) {
       lastNotificationIdRef.current = latestNotification.id
       return
     }
