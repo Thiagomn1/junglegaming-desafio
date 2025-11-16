@@ -6,6 +6,7 @@ Pacotes compartilhados entre todos os serviços do monorepo.
 
 ```
 packages/
+├── auth/               # Módulo de autenticação compartilhado
 ├── types/              # Tipos TypeScript compartilhados
 ├── utils/              # Funções utilitárias
 ├── tsconfig/           # Configurações TypeScript
@@ -16,7 +17,37 @@ packages/
 
 ## 📋 Pacotes Disponíveis
 
-### 1. `@jungle/types`
+### 1. `@jungle/auth`
+
+Módulo NestJS compartilhado para autenticação JWT.
+
+**Conteúdo:**
+
+- `jwt.strategy.ts` - Estratégia Passport JWT
+- `jwt-auth.guard.ts` - Guard para proteger rotas
+- `auth.module.ts` - Módulo exportável
+
+**Uso:**
+
+```typescript
+import { AuthModule, JwtAuthGuard } from "@jungle/auth";
+
+@Module({
+  imports: [AuthModule],
+})
+export class AppModule {}
+
+// Proteger rota
+@UseGuards(JwtAuthGuard)
+@Get('profile')
+getProfile(@Req() req) {
+  return req.user; // { userId, email, username }
+}
+```
+
+---
+
+### 2. `@jungle/types`
 
 Tipos e interfaces TypeScript compartilhados.
 
@@ -33,7 +64,7 @@ import { JwtPayload, AuthTokens, UserResponse } from "@jungle/types";
 
 ---
 
-### 2. `@jungle/utils`
+### 3. `@jungle/utils`
 
 Funções utilitárias reutilizáveis.
 
@@ -54,7 +85,7 @@ logger.info("Mensagem de log");
 
 ---
 
-### 3. `@jungle/tsconfig`
+### 4. `@jungle/tsconfig`
 
 Configurações TypeScript compartilhadas.
 
@@ -73,7 +104,7 @@ Configurações TypeScript compartilhadas.
 
 ---
 
-### 4. `@jungle/eslint-config`
+### 5. `@jungle/eslint-config`
 
 Configurações ESLint compartilhadas.
 

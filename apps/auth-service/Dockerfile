@@ -1,4 +1,6 @@
 FROM node:20-alpine AS base
+# Instala ferramentas de build necessárias para compilação nativa do bcrypt
+# python3, make, g++ são necessários para node-gyp compilar bcrypt do source
 RUN apk add --no-cache libc6-compat python3 make g++
 RUN apk update
 WORKDIR /app
@@ -19,6 +21,7 @@ COPY turbo.json turbo.json
 RUN turbo run build --filter=auth-service...
 
 FROM node:20-alpine AS runner
+# Build tools necessários para rebuild do bcrypt em produção
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 

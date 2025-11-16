@@ -1,26 +1,8 @@
 # Docker Compose para Desenvolvimento Local
-# Sobe PostgreSQL, RabbitMQ e opcionalmente o frontend em modo dev
+# Sobe PostgreSQL e RabbitMQ para desenvolvimento local dos serviços
 # Use: docker-compose -f docker-compose.dev.yml up -d
 
 services:
-  # Frontend em modo de desenvolvimento
-  # web-dev:
-  #   container_name: jungle-dev-web
-  #   build:
-  #     context: .
-  #     dockerfile: ./apps/web/Dockerfile.dev
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./apps/web:/app/apps/web
-  #     - ./packages:/app/packages
-  #     - /app/node_modules
-  #     - /app/apps/web/node_modules
-  #   environment:
-  #     - VITE_API_URL=http://localhost:3001
-  #     - VITE_WS_URL=http://localhost:6000/notifications
-
-
   db:
     image: postgres:17.5-alpine3.21
     container_name: jungle-dev-postgres

@@ -28,6 +28,15 @@
       "outputs": [],
       "cache": true
     },
+    "format": {
+      "outputs": [],
+      "cache": false
+    },
+    "start:debug": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
     "test": {
       "dependsOn": ["build"],
       "outputs": ["coverage/**"],
@@ -36,7 +45,7 @@
     "clean": {
       "cache": false
     },
-        "migration:generate": {
+    "migration:generate": {
       "cache": false
     },
     "migration:run": {
