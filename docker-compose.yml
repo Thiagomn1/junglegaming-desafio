@@ -98,7 +98,7 @@ services:
       - PORT=6000
       - DB_HOST=db
       - DB_USER=${POSTGRES_USER:-postgres}
-      - DB_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - DB_PASS=${POSTGRES_PASSWORD:-password}
       - DB_NAME=${POSTGRES_DB:-challenge_db}
       - DB_PORT=5432
       - JWT_SECRET=${JWT_SECRET:-secret}
