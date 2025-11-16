@@ -256,6 +256,7 @@ export class NotificationsConsumer implements OnModuleInit {
 
         if (this.websocketGateway.isUserConnected(userId)) {
           const wsNotification: WebSocketNotification = {
+            id: notification.id,
             type: notificationType,
             message,
             taskId: eventData.id || eventData.taskId,

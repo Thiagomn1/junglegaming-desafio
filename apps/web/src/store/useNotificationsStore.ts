@@ -98,7 +98,7 @@ export const useNotificationsStore = create<NotificationsState>((set, get) => ({
 
   addNotification: (notification: BaseWebSocketNotification) => {
     const newNotification: Notification = {
-      id: Date.now(),
+      id: notification.id,
       type: notification.type,
       message: notification.message,
       taskId: notification.taskId || null,

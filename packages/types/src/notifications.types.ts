@@ -27,6 +27,7 @@ export interface Notification {
 }
 
 export interface WebSocketNotification {
+  id: number;
   type: NotificationType;
   message: string;
   taskId: number;
