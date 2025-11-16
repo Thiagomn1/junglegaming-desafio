@@ -46,13 +46,13 @@ Frontend (React) → API Gateway → Auth/Tasks/Notifications Services
 
 ## 💻 Desenvolvimento Local
 
-### Backend no Docker + Frontend local (recomendado)
+### Opção 1: Backend no Docker + Frontend local (recomendado para dev frontend)
 
 ```bash
-# 1. Subir backend
-docker-compose up -d
+# 1. Subir backend completo (API Gateway, Auth, Tasks, Notifications, DB, RabbitMQ)
+docker compose -f docker-compose.backend.yml up -d
 
-# 2. Frontend (novo terminal)
+# 2. Frontend local (novo terminal)
 cd apps/web
 cp .env.example .env
 npm install
@@ -60,19 +60,34 @@ npm run dev
 ```
 
 Frontend em: http://localhost:3000
+Backend em: http://localhost:3001
 
-### Tudo local (sem Docker)
+### Opção 2: Apenas DB + RabbitMQ (para dev backend local)
 
 ```bash
-# 1. Setup inicial (primeira vez)
-npm run setup
+# 1. Infraestrutura
+docker compose -f docker-compose.dev.yml up -d
 
-# 2. Infraestrutura
-npm run dev:infra
-
-# 3. Todos os serviços
+# 2. Serviços localmente
 npm run dev
 ```
+
+### Opção 3: Tudo no Docker (produção)
+
+```bash
+docker compose up -d
+```
+
+Frontend em: http://localhost (porta 80)
+Backend em: http://localhost:3001
+
+### Resumo dos arquivos Docker Compose
+
+| Arquivo                         | Uso                                      | Serviços                                    |
+| ------------------------------- | ---------------------------------------- | ------------------------------------------- |
+| `docker-compose.yml`            | **Produção** - tudo no Docker            | Web + Backend + DB + RabbitMQ               |
+| `docker-compose.backend.yml`    | **Dev Frontend** - backend no Docker     | Backend + DB + RabbitMQ (sem Web)           |
+| `docker-compose.dev.yml`        | **Dev Backend** - só infra no Docker     | DB + RabbitMQ (sem serviços)                |
 
 ## 🎯 Decisões Técnicas
 

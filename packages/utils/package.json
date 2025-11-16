@@ -2,8 +2,23 @@
   "name": "@jungle/utils",
   "version": "1.0.0",
   "description": "Shared utility functions",
+  "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./date": {
+      "types": "./dist/date.d.ts",
+      "import": "./dist/date.js"
+    },
+    "./crypto": {
+      "types": "./dist/crypto.d.ts",
+      "import": "./dist/crypto.js"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",

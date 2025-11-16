@@ -18,6 +18,7 @@ import {
   TaskDetailsCard,
   TaskHistoryCard,
 } from '@/components/tasks'
+import { toDateInputValue } from '@jungle/utils/date'
 
 export const Route = createFileRoute('/tasks_/$id')({
   component: TaskDetailPage,
@@ -102,7 +103,7 @@ function TaskDetailPage() {
       setValueEdit('status', task.status)
       setValueEdit('priority', task.priority)
       // Converter ISO date para YYYY-MM-DD (sem conversão de timezone)
-      setValueEdit('dueDate', task.dueDate ? task.dueDate.split('T')[0] : '')
+      setValueEdit('dueDate', toDateInputValue(task.dueDate))
       const assigneesAsNumbers = (task.assignees || []).map((a) =>
         typeof a === 'string' ? parseInt(a, 10) : Number(a),
       )

@@ -20,6 +20,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  optimizeDeps: {
+    exclude: ['@jungle/utils', '@jungle/utils/crypto', 'bcrypt'],
+  },
   server: {
     port: 3000,
     host: true,

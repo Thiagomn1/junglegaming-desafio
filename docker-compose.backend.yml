@@ -1,0 +1,177 @@
+# Docker Compose para desenvolvimento com backend completo
+# Frontend roda localmente (npm run dev na porta 3000)
+# Backend completo roda no Docker (API Gateway, Auth, Tasks, Notifications)
+# Uso: docker compose -f docker-compose.backend.yml up
+
+services:
+  api-gateway:
+    container_name: api-gateway
+    build:
+      context: .
+      dockerfile: ./apps/api-gateway/Dockerfile
+    ports:
+      - '3001:3001'
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - JWT_SECRET=${JWT_SECRET:-secret}
+      - AUTH_SERVICE_URL=http://auth-service:4000
+      - TASKS_SERVICE_URL=http://tasks-service:5000
+      - NOTIFICATIONS_SERVICE_URL=http://notifications-service:6000
+    networks:
+      - challenge-network
+    depends_on:
+      auth-service:
+        condition: service_started
+      tasks-service:
+        condition: service_started
+      notifications-service:
+        condition: service_started
+      db:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: ./apps/auth-service/Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_HOST=db
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASS=${POSTGRES_PASSWORD:-password}
+      - DB_NAME=${POSTGRES_DB:-challenge_db}
+      - JWT_SECRET=${JWT_SECRET:-secret}
+    networks:
+      - challenge-network
+    depends_on:
+      - db
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  tasks-service:
+    build:
+      context: .
+      dockerfile: ./apps/tasks-service/Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - DB_HOST=db
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASS=${POSTGRES_PASSWORD:-password}
+      - DB_NAME=${POSTGRES_DB:-challenge_db}
+      - JWT_SECRET=${JWT_SECRET:-secret}
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-admin}@rabbitmq:5672
+      - AUTH_SERVICE_URL=http://auth-service:4000
+    networks:
+      - challenge-network
+    depends_on:
+      - db
+      - rabbitmq
+      - auth-service
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  notifications-service:
+    build:
+      context: .
+      dockerfile: ./apps/notifications-service/Dockerfile
+    # Porta exposta para conexões WebSocket diretas do frontend local
+    ports:
+      - "6001:6000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=6000
+      - DB_HOST=db
+      - DB_USER=${POSTGRES_USER:-postgres}
+      - DB_PASS=${POSTGRES_PASSWORD:-password}
+      - DB_NAME=${POSTGRES_DB:-challenge_db}
+      - DB_PORT=5432
+      - JWT_SECRET=${JWT_SECRET:-secret}
+      - RABBITMQ_URL=amqp://${RABBITMQ_DEFAULT_USER:-admin}:${RABBITMQ_DEFAULT_PASS:-admin}@rabbitmq:5672
+    networks:
+      - challenge-network
+    depends_on:
+      - db
+      - rabbitmq
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  db:
+    image: postgres:17.5-alpine3.21
+    container_name: db
+    restart: always
+    ports:
+      - '5432:5432'
+    networks:
+      - challenge-network
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-challenge_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    networks:
+      - challenge-network
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS:-admin}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+
+networks:
+  challenge-network:
+    driver: bridge

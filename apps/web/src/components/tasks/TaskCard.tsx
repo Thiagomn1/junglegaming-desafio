@@ -9,6 +9,7 @@ import {
   statusColors,
   statusLabels,
 } from '@/lib/task-constants'
+import { formatDateOnly } from '@jungle/utils/date'
 
 interface TaskCardProps {
   task: {
@@ -47,7 +48,7 @@ export function TaskCard({ task }: TaskCardProps) {
           {task.dueDate && (
             <div className="flex items-center gap-2 text-sm text-slate-500">
               <Calendar className="h-4 w-4" />
-              {new Date(task.dueDate + 'T00:00:00').toLocaleDateString('pt-BR')}
+              {formatDateOnly(task.dueDate)}
             </div>
           )}
         </CardContent>
