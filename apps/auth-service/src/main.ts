@@ -19,10 +19,10 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(4000);
-  console.log(`🚀 auth-service rodando na porta 4000`);
-  console.log(`📚 Swagger docs: http://localhost:4000/api/docs`);
+  console.log('auth-service rodando na porta 4000');
+  console.log('Swagger docs: http://localhost:4000/api/docs');
 }
 bootstrap().catch((err) => {
-  console.error('❌ Erro ao inicializar a aplicação:', err);
+  console.error('Erro ao inicializar a aplicação:', err);
   process.exit(1);
 });

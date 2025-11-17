@@ -31,11 +31,11 @@ async function bootstrap() {
   const port = process.env.PORT || 5000;
   await app.listen(port);
 
-  console.log(`🚀 tasks-service rodando na porta ${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
+  console.log(`tasks-service rodando na porta ${port}`);
+  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap().catch((err) => {
-  console.error('❌ Erro ao inicializar a aplicação:', err);
+  console.error('Erro ao inicializar a aplicação:', err);
   process.exit(1);
 });

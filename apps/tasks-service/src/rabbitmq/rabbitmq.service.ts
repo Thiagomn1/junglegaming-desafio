@@ -38,9 +38,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         durable: true,
       });
 
-      this.logger.log('✅ Conectado ao RabbitMQ');
+      this.logger.log('Conectado ao RabbitMQ');
     } catch (error) {
-      this.logger.error('❌ Erro ao conectar ao RabbitMQ:', error);
+      this.logger.error('Erro ao conectar ao RabbitMQ:', error);
       setTimeout(() => {
         void this.connect();
       }, 5000);
@@ -73,9 +73,9 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         timestamp: Date.now(),
       });
 
-      this.logger.log(`📤 Evento publicado: ${routingKey}`);
+      this.logger.log(`Evento publicado: ${routingKey}`);
     } catch (error) {
-      this.logger.error(`❌ Erro ao publicar evento ${routingKey}:`, error);
+      this.logger.error(`Erro ao publicar evento ${routingKey}:`, error);
     }
   }
 }

@@ -26,10 +26,10 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   await app.listen(3001);
-  console.log('🚀 API Gateway rodando em http://localhost:3001');
-  console.log('📚 Swagger docs: http://localhost:3001/api/docs');
+  console.log('API Gateway rodando em http://localhost:3001');
+  console.log('Swagger docs: http://localhost:3001/api/docs');
 }
 bootstrap().catch((err) => {
-  console.error('❌ Erro ao inicializar a aplicação:', err);
+  console.error('Erro ao inicializar a aplicação:', err);
   process.exit(1);
 });

@@ -22,14 +22,12 @@ async function bootstrap() {
 
   const port = process.env.PORT || 6000;
   await app.listen(port);
-  console.log(`🚀 Notifications Service rodando em http://localhost:${port}`);
-  console.log(`📚 Swagger docs: http://localhost:${port}/api/docs`);
-  console.log(
-    `🔌 WebSocket disponível em ws://localhost:${port}/notifications`,
-  );
+  console.log(`Notifications Service rodando em http://localhost:${port}`);
+  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
+  console.log(`WebSocket disponível em ws://localhost:${port}/notifications`);
 }
 
 bootstrap().catch((err) => {
-  console.error('❌ Erro ao inicializar a aplicação:', err);
+  console.error('Erro ao inicializar a aplicação:', err);
   process.exit(1);
 });
